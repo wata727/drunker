@@ -1,5 +1,4 @@
-require "drunker/version"
+require "thor"
 
-module Drunker
-  # Your code goes here...
-end
+require "drunker/version"
+require "drunker/cli"
