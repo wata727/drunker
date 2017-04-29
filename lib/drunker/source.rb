@@ -15,6 +15,13 @@ module Drunker
       "#{bucket.name}/#{name}"
     end
 
+    def to_h
+      {
+        type: "S3",
+        location: location
+      }
+    end
+
     private
 
     attr_reader :s3

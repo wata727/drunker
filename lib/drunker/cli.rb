@@ -3,7 +3,7 @@ module Drunker
     desc "exec", "Run a command on platform"
     def exec(*commands)
       source = Drunker::Source.new
-      # executor
+      Drunker::Executor.new(source: source, commands: commands, image: "quay.io/actcat/ruby_rubocop").run
       # aggregator
     end
 
