@@ -5,4 +5,4 @@ require "aws-sdk"
 
 require "drunker/version"
 require "drunker/cli"
-require "drunker/preprocessor"
+require "drunker/source"
