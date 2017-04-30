@@ -1,22 +1,22 @@
 module Drunker
   class Executor
-    def initialize(source:, commands:, image:)
+    def initialize(source:, commands:, image:, concurrency:)
       @project_name = "drunker-executor-#{Time.now.to_i.to_s}"
       @source = source
       @artifact = Drunker::Artifact.new
       @commands = commands
       @image = image
+      @concurrency = concurrency
       @client = Aws::CodeBuild::Client.new
     end
 
     def run
       setup_project do
-        resp = client.start_build(project_name: project_name, buildspec_override: buildspec)
-        artifact.set_build(resp.build.id)
+        builders = parallel_build
+
         loop do
-          status = client.batch_get_builds(ids: [resp.build.id]).builds.first.build_status
-          break if status != "IN_PROGRESS"
-          puts "Current status: #{status}"
+          break unless builders.any?(&:running?)
+          puts "Waiting running...."
           sleep 5
         end
       end
@@ -31,6 +31,7 @@ module Drunker
     attr_reader :artifact
     attr_reader :commands
     attr_reader :image
+    attr_reader :concurrency
     attr_reader :client
 
     def setup_project
@@ -62,18 +63,17 @@ module Drunker
       client.delete_project(name: project_name)
     end
 
-    def buildspec
-      {
-        "version" => 0.1,
-        "phases" => {
-          "build" => {
-            "commands" => [commands.join(" ") + " > #{artifact.name}"]
-          }
-        },
-        "artifacts" => {
-          "files" => [artifact.name]
-        }
-      }.to_yaml
+    def parallel_build
+      builders = []
+
+      source.target_files.each_slice(source.target_files.count.quo(concurrency).ceil).to_a.each do |files|
+        builder = Builder.new(project_name: project_name, commands: commands, targets: files, artifact: artifact)
+        build_id = builder.run
+        artifact.set_build(build_id)
+        builders << builder
+      end
+
+      builders
     end
   end
 end

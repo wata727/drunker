@@ -8,6 +8,7 @@ module Drunker
       @s3 = Aws::S3::Resource.new
       @bucket = s3.create_bucket(bucket: "drunker-artifact-store-#{timestamp}")
       @name = "drunker_artifact_#{timestamp}.txt"
+      @builds = []
     end
 
     def to_h
@@ -19,11 +20,14 @@ module Drunker
     end
 
     def output
-      bucket.object("#{build_id}/#{project_name}/#{name}").get.body.string
+      builds.each_with_object({}) do |build_id, results|
+        results[build_id] = bucket.object("#{build_id}/#{project_name}/#{name}").get.body.string
+      end
     end
 
     def set_build(build)
-      @project_name, @build_id = build.split(":")
+      @project_name, build_id = build.split(":")
+      @builds << build_id
     end
 
     def delete
@@ -34,6 +38,6 @@ module Drunker
 
     attr_reader :s3
     attr_reader :project_name
-    attr_reader :build_id
+    attr_reader :builds
   end
 end
