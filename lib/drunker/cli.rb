@@ -1,9 +1,9 @@
 module Drunker
   class CLI < Thor
-    desc "exec", "Run a command on platform"
-    def exec(*commands)
+    desc "exec", "Run a command on CodeBuild"
+    def exec(image, *commands)
       source = Drunker::Source.new
-      artifact = Drunker::Executor.new(source: source, commands: commands, image: "quay.io/actcat/ruby_rubocop").run
+      artifact = Drunker::Executor.new(source: source, commands: commands, image: image).run
       puts artifact.output
       # aggregator
       source.delete

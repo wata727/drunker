@@ -59,7 +59,7 @@ module Drunker
       yield
 
       iam.delete
-      client.delete_project(project_name)
+      client.delete_project(name: project_name)
     end
 
     def buildspec
