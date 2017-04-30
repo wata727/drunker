@@ -3,8 +3,11 @@ module Drunker
     desc "exec", "Run a command on platform"
     def exec(*commands)
       source = Drunker::Source.new
-      Drunker::Executor.new(source: source, commands: commands, image: "quay.io/actcat/ruby_rubocop").run
+      artifact = Drunker::Executor.new(source: source, commands: commands, image: "quay.io/actcat/ruby_rubocop").run
+      puts artifact.output
       # aggregator
+      source.delete
+      artifact.delete
     end
 
     desc "version", "Print version"

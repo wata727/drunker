@@ -22,6 +22,10 @@ module Drunker
       }
     end
 
+    def delete
+      bucket.delete!
+    end
+
     private
 
     attr_reader :s3

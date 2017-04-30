@@ -12,6 +12,7 @@ module Drunker
     def run
       setup_project do
         resp = client.start_build(project_name: project_name, buildspec_override: buildspec)
+        artifact.set_build(resp.build.id)
         loop do
           status = client.batch_get_builds(ids: [resp.build.id]).builds.first.build_status
           break if status != "IN_PROGRESS"
@@ -19,6 +20,8 @@ module Drunker
           sleep 5
         end
       end
+
+      artifact
     end
 
     private
@@ -64,12 +67,11 @@ module Drunker
         "version" => 0.1,
         "phases" => {
           "build" => {
-            "commands" => [commands.join(" ") + " > output.txt"]
+            "commands" => [commands.join(" ") + " > #{artifact.name}"]
           }
         },
         "artifacts" => {
-          "type" => "zip",
-          "files" => ["output.txt"]
+          "files" => [artifact.name]
         }
       }.to_yaml
     end
