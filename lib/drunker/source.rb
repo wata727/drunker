@@ -2,15 +2,15 @@ module Drunker
   class Source
     attr_reader :target_files
 
-    def initialize
+    def initialize(target_dir)
       timestamp = Time.now.to_i.to_s
       @s3 = Aws::S3::Resource.new
       @bucket = s3.create_bucket(bucket: "drunker-source-store-#{timestamp}")
       @name = "drunker_source_#{timestamp}.zip"
       @target_files = []
 
-      set_target_files(Pathname.pwd)
-      archive(Pathname.pwd) do |path|
+      set_target_files(target_dir)
+      archive(target_dir) do |path|
         bucket.object(name).upload_file(path.to_s)
       end
     end
