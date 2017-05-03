@@ -1,6 +1,6 @@
 module Drunker
   class Executor
-    def initialize(source:, commands:, image:, concurrency:, logger: logger)
+    def initialize(source:, commands:, image:, concurrency:, logger:)
       @logger = logger
       @project_name = "drunker-executor-#{Time.now.to_i.to_s}"
       @source = source
@@ -17,8 +17,9 @@ module Drunker
         builders = parallel_build
 
         loop do
-          break unless builders.any?(&:running?)
-          logger.info("Waiting build... #{builders.select(&:running?).tap { |running| "#{running.count}/#{builders.count}" }}")
+          runnings = builders.select(&:running?)
+          break if runnings.count.zero?
+          logger.info("Waiting builder: #{runnings.count}/#{builders.count}")
           sleep 5
         end
       end
@@ -41,8 +42,8 @@ module Drunker
       logger.info("Creating IAM resources...")
       iam = IAM.new(source: source, artifact: artifact)
 
+      logger.info("Creating project...")
       begin
-        logger.info("Creating project...")
         client.create_project(
           name: project_name,
           source: source.to_h,
