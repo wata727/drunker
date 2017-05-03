@@ -4,7 +4,7 @@ RSpec.describe Drunker::Executor do
   let(:commands) { %w(rubocop --fail-level=F FILES) }
   let(:image) { "wata727/rubocop" }
   let(:concurrency) { 1 }
-  let(:executor) { Drunker::Executor.new(source: source, commands: commands, image: image, concurrency: concurrency) }
+  let(:executor) { Drunker::Executor.new(source: source, commands: commands, image: image, concurrency: concurrency, logger: Logger.new("/dev/null")) }
   let(:source) do
     double(
       target_files: %w(lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb),
@@ -31,6 +31,11 @@ RSpec.describe Drunker::Executor do
       expect(executor.instance_variable_get(:@commands)).to eq commands
       expect(executor.instance_variable_get(:@image)).to eq image
       expect(executor.instance_variable_get(:@concurrency)).to eq concurrency
+    end
+
+    it "creates and sets artifact" do
+      expect(Drunker::Artifact).to receive(:new).with(logger: instance_of(Logger)).and_return(artifact)
+      expect(executor.instance_variable_get(:@artifact)).to eq artifact
     end
   end
 

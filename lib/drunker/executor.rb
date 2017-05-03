@@ -1,9 +1,11 @@
 module Drunker
   class Executor
-    def initialize(source:, commands:, image:, concurrency:)
+    def initialize(source:, commands:, image:, concurrency:, logger: logger)
+      @logger = logger
       @project_name = "drunker-executor-#{Time.now.to_i.to_s}"
       @source = source
-      @artifact = Drunker::Artifact.new
+      logger.info("Creating artifact...")
+      @artifact = Drunker::Artifact.new(logger: logger)
       @commands = commands
       @image = image
       @concurrency = concurrency
@@ -33,6 +35,7 @@ module Drunker
     attr_reader :image
     attr_reader :concurrency
     attr_reader :client
+    attr_reader :logger
 
     def setup_project
       iam = IAM.new(source: source, artifact: artifact)

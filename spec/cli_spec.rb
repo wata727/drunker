@@ -30,7 +30,8 @@ RSpec.describe Drunker::CLI do
       expect(Drunker::Executor).to receive(:new).with(source: source,
                                                       commands: ["rubocop", "--fail-level=F", "FILES"],
                                                       image: "wata727/rubocop",
-                                                      concurrency: 1)
+                                                      concurrency: 1,
+                                                      logger: logger)
                                        .and_return(executor)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
@@ -39,8 +40,8 @@ RSpec.describe Drunker::CLI do
       expect(Drunker::Executor).to receive(:new).with(source: source,
                                                       commands: ["rubocop", "--fail-level=F", "FILES"],
                                                       image: "wata727/rubocop",
-                                                      concurrency: 10
-      )
+                                                      concurrency: 10,
+                                                      logger: logger)
                                        .and_return(executor)
       Drunker::CLI.start(%w(run --concurrency=10 wata727/rubocop rubocop --fail-level=F FILES))
     end
