@@ -18,7 +18,7 @@ module Drunker
 
         loop do
           break unless builders.any?(&:running?)
-          puts "Waiting running...."
+          logger.info("Waiting build... #{builders.select(&:running?).tap { |running| "#{running.count}/#{builders.count}" }}")
           sleep 5
         end
       end
@@ -38,9 +38,11 @@ module Drunker
     attr_reader :logger
 
     def setup_project
+      logger.info("Creating IAM resources...")
       iam = IAM.new(source: source, artifact: artifact)
 
       begin
+        logger.info("Creating project...")
         client.create_project(
           name: project_name,
           source: source.to_h,
@@ -52,24 +54,29 @@ module Drunker
           },
           service_role: iam.role.name
         )
+        logger.info("Created project: #{project_name}")
       # Sometimes `CodeBuild is not authorized to perform: sts:AssumeRole` error occurs...
       # We can solve this problem by retrying after a while.
       rescue Aws::CodeBuild::Errors::InvalidInputException
         sleep 5
-        puts "retrying..."
+        logger.info("Retrying...")
         retry
       end
 
       yield
 
+      logger.info("Deleting IAM resources...")
       iam.delete
       client.delete_project(name: project_name)
+      logger.info("Deleted project: #{project_name}")
     end
 
     def parallel_build
       builders = []
 
-      source.target_files.each_slice(source.target_files.count.quo(concurrency).ceil).to_a.each do |files|
+      files_list = source.target_files.each_slice(source.target_files.count.quo(concurrency).ceil).to_a
+      logger.info("Start parallel build: { files: #{source.target_files.count}, concurrency: #{concurrency}, real_concurrency: #{files_list.count} }")
+      files_list.to_a.each do |files|
         builder = Builder.new(project_name: project_name, commands: commands, targets: files, artifact: artifact)
         build_id = builder.run
         artifact.set_build(build_id)
