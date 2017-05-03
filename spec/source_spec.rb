@@ -1,6 +1,9 @@
 require "spec_helper"
 
 RSpec.describe Drunker::Source do
+  let(:path) { Pathname.pwd }
+  let(:logger) { Logger.new("/dev/null") }
+  let(:source) { Drunker::Source.new(path, logger: logger) }
   let(:s3) { double("s3 stub") }
   let(:bucket) { double(name: "drunker-source-store-1483196400") }
   let(:object) { double("object stub") }
@@ -19,39 +22,42 @@ RSpec.describe Drunker::Source do
   context "#initiliaze" do
     it "creates s3 bucket" do
       expect(s3).to receive(:create_bucket).with(bucket: "drunker-source-store-1483196400").and_return(bucket)
-      Drunker::Source.new(Pathname.pwd)
-    end
-
-    it "sets target files" do
-      expect(Drunker::Source.new(Pathname(__dir__) + "fixtures").target_files).to contain_exactly("test.rb", "test2.rb", "subdir/test3.rb")
-    end
-
-    it "archives and deletes source" do
-      expect(Zip::File).to receive(:open).with((Pathname(__dir__) + "fixtures/drunker_source_1483196400.zip").to_s, Zip::File::CREATE).and_yield(zip)
-      expect(zip).to receive(:add).with(Pathname(".gitignore"), (Pathname(__dir__) + "fixtures/.gitignore").to_s)
-      expect(zip).to receive(:add).with(Pathname("test.rb"), (Pathname(__dir__) + "fixtures/test.rb").to_s)
-      expect(zip).to receive(:add).with(Pathname("test2.rb"), (Pathname(__dir__) + "fixtures/test2.rb").to_s)
-      expect(zip).to receive(:add).with(Pathname("subdir/.rspec"), (Pathname(__dir__) + "fixtures/subdir/.rspec").to_s)
-      expect(zip).to receive(:add).with(Pathname("subdir/test3.rb"), (Pathname(__dir__) + "fixtures/subdir/test3.rb").to_s)
-      expect_any_instance_of(Pathname).to receive(:unlink)
-      Drunker::Source.new(Pathname(__dir__) + "fixtures")
+      source
     end
 
     it "uploads archived source" do
-      expect(object).to receive(:upload_file).with((Pathname.pwd + "drunker_source_1483196400.zip").to_s)
-      Drunker::Source.new(Pathname.pwd)
+      expect(object).to receive(:upload_file).with((path + "drunker_source_1483196400.zip").to_s)
+      source
+    end
+
+    context "when use fixtures" do
+      let(:path) { Pathname(__dir__) + "fixtures" }
+
+      it "sets target files" do
+        expect(source.target_files).to contain_exactly("test.rb", "test2.rb", "subdir/test3.rb")
+      end
+
+      it "archives and deletes source" do
+        expect(Zip::File).to receive(:open).with((Pathname(__dir__) + "fixtures/drunker_source_1483196400.zip").to_s, Zip::File::CREATE).and_yield(zip)
+        expect(zip).to receive(:add).with(Pathname(".gitignore"), (Pathname(__dir__) + "fixtures/.gitignore").to_s)
+        expect(zip).to receive(:add).with(Pathname("test.rb"), (Pathname(__dir__) + "fixtures/test.rb").to_s)
+        expect(zip).to receive(:add).with(Pathname("test2.rb"), (Pathname(__dir__) + "fixtures/test2.rb").to_s)
+        expect(zip).to receive(:add).with(Pathname("subdir/.rspec"), (Pathname(__dir__) + "fixtures/subdir/.rspec").to_s)
+        expect(zip).to receive(:add).with(Pathname("subdir/test3.rb"), (Pathname(__dir__) + "fixtures/subdir/test3.rb").to_s)
+        expect_any_instance_of(Pathname).to receive(:unlink)
+        source
+      end
     end
   end
 
   context "#location" do
     it "returns archived source object path on S3" do
-      expect(Drunker::Source.new(Pathname.pwd).location).to eq "drunker-source-store-1483196400/drunker_source_1483196400.zip"
+      expect(source.location).to eq "drunker-source-store-1483196400/drunker_source_1483196400.zip"
     end
   end
 
   context "#to_h" do
     it "returns hash for buildspec" do
-      source = Drunker::Source.new(Pathname.pwd)
       expect(source.to_h).to eq(type: "S3", location: source.location)
     end
   end
@@ -59,7 +65,7 @@ RSpec.describe Drunker::Source do
   context "#delete" do
     it "deletes bucket" do
       expect(bucket).to receive(:delete!)
-      Drunker::Source.new(Pathname.pwd).delete
+      source.delete
     end
   end
 end

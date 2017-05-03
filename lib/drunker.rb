@@ -4,6 +4,7 @@ require "pathname"
 require "aws-sdk"
 require "json"
 require "yaml"
+require "logger"
 
 require "drunker/version"
 require "drunker/cli"

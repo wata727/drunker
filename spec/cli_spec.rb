@@ -5,7 +5,9 @@ RSpec.describe Drunker::CLI do
     let(:source) { double("source stub") }
     let(:executor) { double("executor stub") }
     let(:artifact) { double(output: "Artifact") }
+    let(:logger) { Logger.new("/dev/null") }
     before do
+      allow(Logger).to receive(:new).and_return(logger)
       allow(Drunker::Source).to receive(:new).and_return(source)
       allow(Drunker::Executor).to receive(:new).and_return(executor)
       allow(executor).to receive(:run).and_return(artifact)
@@ -14,8 +16,14 @@ RSpec.describe Drunker::CLI do
     end
 
     it "creates new source" do
-      expect(Drunker::Source).to receive(:new).with(Pathname.pwd).and_return(source)
+      expect(logger).to receive(:level=).with(Logger::INFO)
+      expect(Drunker::Source).to receive(:new).with(Pathname.pwd, logger: logger).and_return(source)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
+    end
+
+    it "sets log level" do
+      expect(logger).to receive(:level=).with(Logger::DEBUG)
+      Drunker::CLI.start(%w(run --loglevel=debug wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     it "creates new executor with arguments" do
