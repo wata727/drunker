@@ -17,9 +17,9 @@ module Drunker
         builders = parallel_build
 
         loop do
-          runnings = builders.select(&:running?)
-          break if runnings.count.zero?
-          logger.info("Waiting builder: #{runnings.count}/#{builders.count}")
+          running, finished = builders.partition(&:running?)
+          break if running.count.zero?
+          logger.info("Waiting builder: #{finished.count}/#{builders.count}")
           sleep 5
         end
       end
