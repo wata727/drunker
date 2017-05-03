@@ -1,7 +1,7 @@
 require "spec_helper"
 
 RSpec.describe Drunker::CLI do
-  context "#exec" do
+  context "#run" do
     let(:source) { double("source stub") }
     let(:executor) { double("executor stub") }
     let(:artifact) { double(output: "Artifact") }
@@ -15,7 +15,7 @@ RSpec.describe Drunker::CLI do
 
     it "creates new source" do
       expect(Drunker::Source).to receive(:new).with(Pathname.pwd).and_return(source)
-      Drunker::CLI.start(%w(exec wata727/rubocop rubocop --fail-level=F FILES))
+      Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     it "creates new executor with arguments" do
@@ -24,7 +24,7 @@ RSpec.describe Drunker::CLI do
                                                       image: "wata727/rubocop",
                                                       concurrency: 1)
                                        .and_return(executor)
-      Drunker::CLI.start(%w(exec wata727/rubocop rubocop --fail-level=F FILES))
+      Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     it "creates new executor with concurrency option" do
@@ -34,26 +34,26 @@ RSpec.describe Drunker::CLI do
                                                       concurrency: 10
       )
                                        .and_return(executor)
-      Drunker::CLI.start(%w(exec --concurrency=10 wata727/rubocop rubocop --fail-level=F FILES))
+      Drunker::CLI.start(%w(run --concurrency=10 wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     it "runs executor" do
       expect(executor).to receive(:run).and_return(artifact)
-      Drunker::CLI.start(%w(exec wata727/rubocop rubocop --fail-level=F FILES))
+      Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     it "deletes source" do
       expect(source).to receive(:delete)
-      Drunker::CLI.start(%w(exec wata727/rubocop rubocop --fail-level=F FILES))
+      Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     it "deletes artifact" do
       expect(artifact).to receive(:delete)
-      Drunker::CLI.start(%w(exec wata727/rubocop rubocop --fail-level=F FILES))
+      Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     it "outputs artifact" do
-      expect{ Drunker::CLI.start(%w(exec wata727/rubocop rubocop --fail-level=F FILES)) }.to output("Artifact\n").to_stdout
+      expect{ Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES)) }.to output("Artifact\n").to_stdout
     end
   end
 
