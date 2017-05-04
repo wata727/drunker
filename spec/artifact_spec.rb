@@ -37,38 +37,35 @@ RSpec.describe Drunker::Artifact do
     let(:build_1_object) { double(get: double(body: double(string: "build_1_string") ) ) }
     let(:build_2_object) { double(get: double(body: double(string: "build_2_string") ) ) }
     before do
-      artifact.instance_variable_set(:@builds, %w(build_1 build_2))
-      artifact.instance_variable_set(:@project_name, "drunker-test-executor")
+      artifact.instance_variable_set(:@builds, %w(drunker-test-executor:build_1 drunker-test-executor:build_2))
       allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400.txt").and_return(build_1_object)
       allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400.txt").and_return(build_2_object)
     end
 
     it "returns artifact hash" do
-      expect(artifact.output).to eq("build_1" => "build_1_string", "build_2" => "build_2_string")
+      expect(artifact.output).to eq("drunker-test-executor:build_1" => "build_1_string", "drunker-test-executor:build_2" => "build_2_string")
     end
   end
 
   describe "#set_build" do
     it "sets build and project_name" do
       artifact.set_build("drunker-test-executor:build_1")
-      expect(artifact.instance_variable_get(:@builds)).to eq %w(build_1)
-      expect(artifact.instance_variable_get(:@project_name)).to eq "drunker-test-executor"
+      expect(artifact.instance_variable_get(:@builds)).to eq %w(drunker-test-executor:build_1)
     end
 
     it "sets multiple builds and project_name" do
       artifact.set_build("drunker-test-executor:build_1")
       artifact.set_build("drunker-test-executor:build_2")
-      expect(artifact.instance_variable_get(:@builds)).to eq %w(build_1 build_2)
-      expect(artifact.instance_variable_get(:@project_name)).to eq "drunker-test-executor"
+      expect(artifact.instance_variable_get(:@builds)).to eq %w(drunker-test-executor:build_1 drunker-test-executor:build_2)
     end
   end
 
   describe "#replace_build" do
-    before { artifact.instance_variable_set(:@builds, %w(build_1)) }
+    before { artifact.instance_variable_set(:@builds, %w(drunker-test-executor:build_1)) }
 
     it "replaces build id" do
       artifact.replace_build(before: "drunker-test-executor:build_1", after: "drunker-test-executor:build_1_retry")
-      expect(artifact.instance_variable_get(:@builds)).to eq %w(build_1_retry)
+      expect(artifact.instance_variable_get(:@builds)).to eq %w(drunker-test-executor:build_1_retry)
     end
   end
 

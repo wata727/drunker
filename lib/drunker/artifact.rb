@@ -23,23 +23,22 @@ module Drunker
     end
 
     def output
-      builds.each_with_object({}) do |build_id, results|
+      builds.each_with_object({}) do |build, results|
+        project_name, build_id = build.split(":")
         object_id = "#{build_id}/#{project_name}/#{name}"
-        results[build_id] = bucket.object(object_id).get.body.string
+        results[build] = bucket.object(object_id).get.body.string
         logger.debug("Get artifact: #{object_id}")
       end
     end
 
     def set_build(build)
-      @project_name, build_id = build.split(":")
-      @builds << build_id
-      logger.debug("Set build: { project_name: #{project_name}, build_id: #{build_id}, artifact: #{name} }")
+      @builds << build
+      logger.debug("Set build: { build: #{build}, artifact: #{name} }")
     end
 
     def replace_build(before:, after:)
-      build_id = before.split(":")[1]
-      builds.delete(build_id)
-      logger.debug("Unset build: { build_id: #{build_id}, artifact: #{name} }")
+      builds.delete(before)
+      logger.debug("Unset build: { build: #{before}, artifact: #{name} }")
       set_build(after)
     end
 
@@ -51,7 +50,6 @@ module Drunker
     private
 
     attr_reader :s3
-    attr_reader :project_name
     attr_reader :builds
     attr_reader :logger
   end
