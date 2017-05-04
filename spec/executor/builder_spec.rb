@@ -12,7 +12,7 @@ RSpec.describe Drunker::Executor::Builder do
     allow(Aws::CodeBuild::Client).to receive(:new).and_return(client)
   end
 
-  context "#initialize" do
+  describe "#initialize" do
     it "sets attributes" do
       expect(builder.instance_variable_get(:@project_name)).to eq project_name
       expect(builder.instance_variable_get(:@commands)).to eq commands
@@ -21,7 +21,7 @@ RSpec.describe Drunker::Executor::Builder do
     end
   end
 
-  context "#run" do
+  describe "#run" do
     let(:response) { double(build: double(id: "build_id")) }
     before do
       allow(client).to receive(:start_build).and_return(response)
@@ -77,7 +77,7 @@ RSpec.describe Drunker::Executor::Builder do
     end
   end
 
-  context "#retriable?" do
+  describe "#retriable?" do
     it "returns true" do
       expect(builder.retriable?).to be true
     end
@@ -90,14 +90,14 @@ RSpec.describe Drunker::Executor::Builder do
     end
   end
 
-  context "#retry" do
+  describe "#retry" do
     it "runs" do
       expect(builder).to receive(:run)
       builder.retry
     end
   end
 
-  context "#access_denined?" do
+  describe "#access_denined?" do
     before do
       builder.instance_variable_set(:@build_id, "build_id")
     end
@@ -172,7 +172,7 @@ MESSAGE
     end
   end
 
-  context "#running?" do
+  describe "#running?" do
     before do
       builder.instance_variable_set(:@build_id, "build_id")
     end
@@ -228,7 +228,7 @@ MESSAGE
     end
   end
 
-  context "#refresh" do
+  describe "#refresh" do
     before { builder.instance_variable_set(:@result, double("CodeBuild response stub")) }
     it "makes result to nil" do
       builder.refresh

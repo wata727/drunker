@@ -16,7 +16,7 @@ RSpec.describe Drunker::Executor::IAM do
   end
   after { Timecop.return }
 
-  context "#initialize" do
+  describe "#initialize" do
     it "creates IAM role" do
       json = {
         Version: "2012-10-17",
@@ -85,7 +85,7 @@ RSpec.describe Drunker::Executor::IAM do
     end
   end
 
-  context "#delete" do
+  describe "#delete" do
     before do
       allow(role).to receive(:detach_policy)
       allow(policy).to receive(:delete)

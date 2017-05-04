@@ -1,7 +1,7 @@
 require "spec_helper"
 
 RSpec.describe Drunker::CLI do
-  context "#run" do
+  describe "#run" do
     let(:source) { double("source stub") }
     let(:executor) { double("executor stub") }
     let(:artifact) { double(output: "Artifact") }
@@ -66,7 +66,7 @@ RSpec.describe Drunker::CLI do
     end
   end
 
-  context "#version" do
+  describe "#version" do
     it "shows version" do
       expect { Drunker::CLI.start(%w(version)) }.to output("Drunker #{Drunker::VERSION}\n").to_stdout
     end

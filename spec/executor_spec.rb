@@ -23,7 +23,7 @@ RSpec.describe Drunker::Executor do
   end
   after { Timecop.return }
 
-  context "#initialize" do
+  describe "#initialize" do
     it "sets attributes" do
       expect(executor.instance_variable_get(:@project_name)).to eq "drunker-executor-1483196400"
       expect(executor.instance_variable_get(:@source)).to eq source
@@ -39,7 +39,7 @@ RSpec.describe Drunker::Executor do
     end
   end
 
-  context "#run" do
+  describe "#run" do
     let(:iam) { double(role: double(name: "drunker-service-role")) }
     let(:client) { double("codebuild clinet stub") }
     let(:builder1) { double(build_id: "project_name:build_id_1") }

@@ -19,7 +19,7 @@ RSpec.describe Drunker::Source do
   end
   after { Timecop.return }
 
-  context "#initiliaze" do
+  describe "#initiliaze" do
     it "creates s3 bucket" do
       expect(s3).to receive(:create_bucket).with(bucket: "drunker-source-store-1483196400").and_return(bucket)
       source
@@ -50,19 +50,19 @@ RSpec.describe Drunker::Source do
     end
   end
 
-  context "#location" do
+  describe "#location" do
     it "returns archived source object path on S3" do
       expect(source.location).to eq "drunker-source-store-1483196400/drunker_source_1483196400.zip"
     end
   end
 
-  context "#to_h" do
+  describe "#to_h" do
     it "returns hash for buildspec" do
       expect(source.to_h).to eq(type: "S3", location: source.location)
     end
   end
 
-  context "#delete" do
+  describe "#delete" do
     it "deletes bucket" do
       expect(bucket).to receive(:delete!)
       source.delete
