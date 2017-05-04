@@ -22,8 +22,10 @@ RSpec.describe Drunker::Artifact do
       expect(artifact.bucket).to eq bucket
     end
 
-    it "sets artifact name" do
-      expect(artifact.name).to eq "drunker_artifact_1483196400.txt"
+    it "sets artifact attributes" do
+      expect(artifact.stdout).to eq "drunker_artifact_1483196400_stdout.txt"
+      expect(artifact.stderr).to eq "drunker_artifact_1483196400_stderr.txt"
+      expect(artifact.status_code).to eq "drunker_artifact_1483196400_status_code.txt"
     end
   end
 
@@ -34,16 +36,34 @@ RSpec.describe Drunker::Artifact do
   end
 
   describe "#output" do
-    let(:build_1_object) { double(get: double(body: double(string: "build_1_string") ) ) }
-    let(:build_2_object) { double(get: double(body: double(string: "build_2_string") ) ) }
+    let(:build_1_stdout_object) { double(get: double(body: double(string: "build_1_stdout") ) ) }
+    let(:build_1_stderr_object) { double(get: double(body: double(string: "build_1_stderr") ) ) }
+    let(:build_1_status_code_object) { double(get: double(body: double(string: "build_1_status_code") ) ) }
+    let(:build_2_stdout_object) { double(get: double(body: double(string: "build_2_stdout") ) ) }
+    let(:build_2_stderr_object) { double(get: double(body: double(string: "build_2_stderr") ) ) }
+    let(:build_2_status_code_object) { double(get: double(body: double(string: "build_2_status_code") ) ) }
     before do
       artifact.instance_variable_set(:@builds, %w(drunker-test-executor:build_1 drunker-test-executor:build_2))
-      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400.txt").and_return(build_1_object)
-      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400.txt").and_return(build_2_object)
+      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_stdout.txt").and_return(build_1_stdout_object)
+      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_stderr.txt").and_return(build_1_stderr_object)
+      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_status_code.txt").and_return(build_1_status_code_object)
+      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_stdout.txt").and_return(build_2_stdout_object)
+      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_stderr.txt").and_return(build_2_stderr_object)
+      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_status_code.txt").and_return(build_2_status_code_object)
     end
 
     it "returns artifact hash" do
-      expect(artifact.output).to eq("drunker-test-executor:build_1" => "build_1_string", "drunker-test-executor:build_2" => "build_2_string")
+      build_1_body = {
+        stdout: "build_1_stdout",
+        stderr: "build_1_stderr",
+        status_code: "build_1_status_code"
+      }
+      build_2_body = {
+        stdout: "build_2_stdout",
+        stderr: "build_2_stderr",
+        status_code: "build_2_status_code"
+      }
+      expect(artifact.output).to eq("drunker-test-executor:build_1" => build_1_body, "drunker-test-executor:build_2" => build_2_body)
     end
   end
 

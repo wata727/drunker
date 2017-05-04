@@ -89,11 +89,11 @@ module Drunker
           "version" => 0.1,
           "phases" => {
             "build" => {
-              "commands" => [interpolate_commands.join(" ") + " > #{artifact.name}"]
+              "commands" => [interpolate_commands.join(" ") + " 1> #{artifact.stdout} 2> #{artifact.stderr}; echo $? > #{artifact.status_code}"]
             }
           },
           "artifacts" => {
-            "files" => [artifact.name]
+            "files" => [artifact.stdout, artifact.stderr, artifact.status_code]
           }
         }.to_yaml
       end

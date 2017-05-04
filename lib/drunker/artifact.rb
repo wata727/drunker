@@ -1,7 +1,9 @@
 module Drunker
   class Artifact
     attr_reader :bucket
-    attr_reader :name
+    attr_reader :stdout
+    attr_reader :stderr
+    attr_reader :status_code
 
     def initialize(logger:)
       @logger = logger
@@ -10,7 +12,10 @@ module Drunker
       @s3 = Aws::S3::Resource.new
       @bucket = s3.create_bucket(bucket: "drunker-artifact-store-#{timestamp}")
       logger.info("Created artifact bucket: #{bucket.name}")
-      @name = "drunker_artifact_#{timestamp}.txt"
+      @name = "drunker_artifact_#{timestamp}"
+      @stdout = "drunker_artifact_#{timestamp}_stdout.txt"
+      @stderr = "drunker_artifact_#{timestamp}_stderr.txt"
+      @status_code = "drunker_artifact_#{timestamp}_status_code.txt"
       @builds = []
     end
 
@@ -25,9 +30,11 @@ module Drunker
     def output
       builds.each_with_object({}) do |build, results|
         project_name, build_id = build.split(":")
-        object_id = "#{build_id}/#{project_name}/#{name}"
-        results[build] = bucket.object(object_id).get.body.string
-        logger.debug("Get artifact: #{object_id}")
+        results[build] = {}.tap do |body|
+          body[:stdout] = fetch_content("#{build_id}/#{project_name}/#{stdout}")
+          body[:stderr] = fetch_content("#{build_id}/#{project_name}/#{stderr}")
+          body[:status_code] = fetch_content("#{build_id}/#{project_name}/#{status_code}")
+        end
       end
     end
 
@@ -52,5 +59,11 @@ module Drunker
     attr_reader :s3
     attr_reader :builds
     attr_reader :logger
+    attr_reader :name
+
+    def fetch_content(object_id)
+      logger.debug("Get artifact: #{object_id}")
+      bucket.object(object_id).get.body.string
+    end
   end
 end

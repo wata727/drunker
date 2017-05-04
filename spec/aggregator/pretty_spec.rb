@@ -13,7 +13,17 @@ RSpec.describe Drunker::Aggregator::Pretty do
       allow(builder2).to receive(:build_id).and_return("project_name:build_id_2")
       allow(builder1).to receive(:success?).and_return(true)
       allow(builder2).to receive(:success?).and_return(false)
-      allow(artifact).to receive(:output).and_return("project_name:build_id_1" => "Success!", "project_name:build_id_2" => "Failed...")
+      success_body = {
+        stdout: "Success!",
+        stderr: "warning!",
+        status_code: "0"
+      }
+      failed_body = {
+        stdout: "Trying...",
+        stderr: "Failed...",
+        status_code: "1"
+      }
+      allow(artifact).to receive(:output).and_return("project_name:build_id_1" => success_body, "project_name:build_id_2" => failed_body)
     end
 
     it "outputs pretty print" do
@@ -22,12 +32,16 @@ RSpec.describe Drunker::Aggregator::Pretty do
 -----------------------------------Build ID: project_name:build_id_1-----------------------------------
 RESULT: SUCCESS
 STDOUT: Success!
+STDERR: warning!
+STATUS_CODE: 0
 -------------------------------------------------------------------------------------------
 
 
 -----------------------------------Build ID: project_name:build_id_2-----------------------------------
 RESULT: FAILED
-STDOUT: Failed...
+STDOUT: Trying...
+STDERR: Failed...
+STATUS_CODE: 1
 -------------------------------------------------------------------------------------------
 
 OUTPUT
