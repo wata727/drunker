@@ -1,5 +1,7 @@
 module Drunker
   class Executor
+    RETRY_LIMIT = 10
+
     def initialize(source:, config:, logger:)
       @logger = logger
       @project_name = "drunker-executor-#{Time.now.to_i.to_s}"
@@ -53,6 +55,7 @@ module Drunker
     def setup_project
       logger.info("Creating IAM resources...")
       iam = IAM.new(source: source, artifact: artifact, logger: logger)
+      retry_count = 0
 
       logger.info("Creating project...")
       begin
@@ -71,9 +74,14 @@ module Drunker
       # Sometimes `CodeBuild is not authorized to perform: sts:AssumeRole` error occurs...
       # We can solve this problem by retrying after a while.
       rescue Aws::CodeBuild::Errors::InvalidInputException
-        sleep 5
-        logger.info("Retrying...")
-        retry
+        if retry_count < RETRY_LIMIT
+          retry_count += 1
+          sleep 5
+          logger.info("Retrying...")
+          retry
+        else
+          raise
+        end
       end
 
       yield

@@ -123,10 +123,9 @@ RSpec.describe Drunker::Executor do
 
     context "when happened `CodeBuild is not authorized to perform: sts:AssumeRole` error" do
       let(:exception) { Aws::CodeBuild::Errors::InvalidInputException.new(nil, "CodeBuild is not authorized to perform: sts:AssumeRole") }
-      it "retries create_project" do
-        expect(client).to receive(:create_project).with(project_info).once.and_raise(exception)
-        expect(client).to receive(:create_project).with(project_info).once
-        executor.run
+      it "retries create_project at 10 times" do
+        expect(client).to receive(:create_project).with(project_info).exactly(11).times.and_raise(exception)
+        expect { executor.run }.to raise_error(exception)
       end
     end
 
