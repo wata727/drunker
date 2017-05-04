@@ -7,7 +7,8 @@ module Drunker
       TIMED_OUT   = "TIMED_OUT"
       STOPPED     = "STOPPED"
 
-      def initialize(project_name:, commands:, targets:, artifact:)
+      def initialize(project_name:, commands:, targets:, artifact:, logger:)
+        @logger = logger
         @project_name = project_name
         @commands = commands
         @targets = targets
@@ -17,6 +18,9 @@ module Drunker
 
       def run
         @build_id = client.start_build(project_name: project_name, buildspec_override: buildspec).build.id
+        logger.info("Started build: #{build_id}")
+        logger.debug("buildspec: #{buildspec}")
+        build_id
       end
 
       def running?
@@ -31,6 +35,7 @@ module Drunker
       attr_reader :artifact
       attr_reader :client
       attr_reader :build_id
+      attr_reader :logger
 
       def status
         client.batch_get_builds(ids: [build_id]).builds.first.build_status

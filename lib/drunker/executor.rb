@@ -78,7 +78,7 @@ module Drunker
       files_list = source.target_files.each_slice(source.target_files.count.quo(concurrency).ceil).to_a
       logger.info("Start parallel build: { files: #{source.target_files.count}, concurrency: #{concurrency}, real_concurrency: #{files_list.count} }")
       files_list.to_a.each do |files|
-        builder = Builder.new(project_name: project_name, commands: commands, targets: files, artifact: artifact)
+        builder = Builder.new(project_name: project_name, commands: commands, targets: files, artifact: artifact, logger: logger)
         build_id = builder.run
         artifact.set_build(build_id)
         builders << builder

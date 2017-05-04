@@ -5,7 +5,7 @@ RSpec.describe Drunker::Executor::Builder do
   let(:commands) { %w(rubocop --fail-level=F) }
   let(:targets) { %w(lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb) }
   let(:artifact) { double(name: "artifact.txt") }
-  let(:builder) { Drunker::Executor::Builder.new(project_name: project_name, commands: commands, targets: targets, artifact: artifact) }
+  let(:builder) { Drunker::Executor::Builder.new(project_name: project_name, commands: commands, targets: targets, artifact: artifact, logger: Logger.new("/dev/null")) }
   let(:client) { double("codebuild client stub") }
 
   before do

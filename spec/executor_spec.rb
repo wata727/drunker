@@ -100,7 +100,8 @@ RSpec.describe Drunker::Executor do
                                                 .with(project_name: "drunker-executor-1483196400",
                                                       commands: commands,
                                                       targets: %w(lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb),
-                                                      artifact: artifact)
+                                                      artifact: artifact,
+                                                      logger: instance_of(Logger))
                                                 .and_return(builder)
         executor.run
       end
@@ -126,13 +127,15 @@ RSpec.describe Drunker::Executor do
                                                 .with(project_name: "drunker-executor-1483196400",
                                                       commands: commands,
                                                       targets: %w(lib/drunker.rb lib/drunker/cli.rb),
-                                                      artifact: artifact)
+                                                      artifact: artifact,
+                                                      logger: instance_of(Logger))
                                                 .and_return(builder1)
         allow(Drunker::Executor::Builder).to receive(:new)
                                                 .with(project_name: "drunker-executor-1483196400",
                                                       commands: commands,
                                                       targets: %w(lib/drunker/version.rb),
-                                                      artifact: artifact)
+                                                      artifact: artifact,
+                                                      logger: instance_of(Logger))
                                                 .and_return(builder2)
         allow(builder1).to receive(:run).and_return("project_name:build_id_1")
         allow(builder2).to receive(:run).and_return("project_name:build_id_2")
@@ -145,13 +148,15 @@ RSpec.describe Drunker::Executor do
                                                 .with(project_name: "drunker-executor-1483196400",
                                                       commands: commands,
                                                       targets: %w(lib/drunker.rb lib/drunker/cli.rb),
-                                                      artifact: artifact)
+                                                      artifact: artifact,
+                                                      logger: instance_of(Logger))
                                                 .and_return(builder1)
         expect(Drunker::Executor::Builder).to receive(:new)
                                                 .with(project_name: "drunker-executor-1483196400",
                                                       commands: commands,
                                                       targets: %w(lib/drunker/version.rb),
-                                                      artifact: artifact)
+                                                      artifact: artifact,
+                                                      logger: instance_of(Logger))
                                                 .and_return(builder2)
         executor.run
       end
@@ -180,19 +185,22 @@ RSpec.describe Drunker::Executor do
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder1)
         allow(Drunker::Executor::Builder).to receive(:new)
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker/cli.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder2)
         allow(Drunker::Executor::Builder).to receive(:new)
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker/version.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder3)
         allow(builder1).to receive(:run).and_return("project_name:build_id_1")
         allow(builder2).to receive(:run).and_return("project_name:build_id_2")
@@ -207,19 +215,22 @@ RSpec.describe Drunker::Executor do
                                                 .with(project_name: "drunker-executor-1483196400",
                                                       commands: commands,
                                                       targets: %w(lib/drunker.rb),
-                                                      artifact: artifact)
+                                                      artifact: artifact,
+                                                      logger: instance_of(Logger))
                                                 .and_return(builder1)
         expect(Drunker::Executor::Builder).to receive(:new)
                                                 .with(project_name: "drunker-executor-1483196400",
                                                       commands: commands,
                                                       targets: %w(lib/drunker/cli.rb),
-                                                      artifact: artifact)
+                                                      artifact: artifact,
+                                                      logger: instance_of(Logger))
                                                 .and_return(builder2)
         expect(Drunker::Executor::Builder).to receive(:new)
                                                 .with(project_name: "drunker-executor-1483196400",
                                                       commands: commands,
                                                       targets: %w(lib/drunker/version.rb),
-                                                      artifact: artifact)
+                                                      artifact: artifact,
+                                                      logger: instance_of(Logger))
                                                 .and_return(builder3)
         executor.run
       end
@@ -249,13 +260,15 @@ RSpec.describe Drunker::Executor do
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker.rb lib/drunker/cli.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder1)
         allow(Drunker::Executor::Builder).to receive(:new)
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker/version.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder2)
         allow(builder1).to receive(:run).and_return("project_name:build_id_1")
         allow(builder2).to receive(:run).and_return("project_name:build_id_2")
@@ -280,13 +293,15 @@ RSpec.describe Drunker::Executor do
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker.rb lib/drunker/cli.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder1)
         allow(Drunker::Executor::Builder).to receive(:new)
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker/version.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder2)
         allow(builder1).to receive(:run).and_return("project_name:build_id_1")
         allow(builder2).to receive(:run).and_return("project_name:build_id_2")
@@ -311,13 +326,15 @@ RSpec.describe Drunker::Executor do
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker.rb lib/drunker/cli.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder1)
         allow(Drunker::Executor::Builder).to receive(:new)
                                                .with(project_name: "drunker-executor-1483196400",
                                                      commands: commands,
                                                      targets: %w(lib/drunker/version.rb),
-                                                     artifact: artifact)
+                                                     artifact: artifact,
+                                                     logger: instance_of(Logger))
                                                .and_return(builder2)
         allow(builder1).to receive(:run).and_return("project_name:build_id_1")
         allow(builder2).to receive(:run).and_return("project_name:build_id_2")
