@@ -54,6 +54,14 @@ module Drunker
         status == IN_PROGRESS
       end
 
+      def failed?
+        status == FAILED
+      end
+
+      def success?
+        status == SUCCEEDED
+      end
+
       def refresh
         @result = nil
       end
@@ -67,10 +75,6 @@ module Drunker
       attr_reader :client
       attr_reader :logger
       attr_reader :retry_count
-
-      def failed?
-        status == FAILED
-      end
 
       def result
         @result ||= client.batch_get_builds(ids: [build_id])

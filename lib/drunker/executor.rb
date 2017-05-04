@@ -13,11 +13,12 @@ module Drunker
       @concurrency = config.concurrency
       @debug = config.debug?
       @client = Aws::CodeBuild::Client.new
+      @builders = []
     end
 
     def run
       setup_project do
-        builders = parallel_build
+        @builders = parallel_build
 
         loop do
           builders.select(&:access_denied?).each do |builder|
@@ -37,7 +38,7 @@ module Drunker
         logger.info("Build is completed!")
       end
 
-      artifact
+      [builders, artifact]
     end
 
     private
@@ -51,6 +52,7 @@ module Drunker
     attr_reader :client
     attr_reader :logger
     attr_reader :debug
+    attr_reader :builders
 
     def setup_project
       logger.info("Creating IAM resources...")

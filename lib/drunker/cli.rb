@@ -15,10 +15,9 @@ module Drunker
       source = Drunker::Source.new(Pathname.pwd, logger: logger)
 
       logger.info("Starting executor...")
-      artifact = Drunker::Executor.new(source: source, config: config, logger: logger).run
+      builders, artifact = Drunker::Executor.new(source: source, config: config, logger: logger).run
 
-      puts artifact.output
-      # aggregator
+      Drunker::Aggregator.run(builders: builders, artifact: artifact)
 
       unless config.debug?
         logger.info("Deleting source...")

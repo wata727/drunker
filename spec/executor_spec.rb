@@ -101,8 +101,8 @@ RSpec.describe Drunker::Executor do
       executor.run
     end
 
-    it "returns artifact" do
-      expect(executor.run).to eq artifact
+    it "returns builders and artifact" do
+      expect(executor.run).to eq [[builder1], artifact]
     end
 
     context "when enabled debug mode" do
