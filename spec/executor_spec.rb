@@ -4,7 +4,14 @@ RSpec.describe Drunker::Executor do
   let(:commands) { %w(rubocop --fail-level=F FILES) }
   let(:image) { "wata727/rubocop" }
   let(:concurrency) { 1 }
-  let(:executor) { Drunker::Executor.new(source: source, commands: commands, image: image, concurrency: concurrency, logger: Logger.new("/dev/null")) }
+  let(:config) do
+    double(
+      image: image,
+      commands: commands,
+      concurrency: concurrency,
+    )
+  end
+  let(:executor) { Drunker::Executor.new(source: source, config: config, logger: Logger.new("/dev/null")) }
   let(:source) do
     double(
       target_files: %w(lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb),
@@ -20,6 +27,7 @@ RSpec.describe Drunker::Executor do
   before do
     Timecop.freeze(Time.local(2017))
     allow(Drunker::Artifact).to receive(:new).and_return(artifact)
+    allow(config).to receive(:debug?).and_return(false)
   end
   after { Timecop.return }
 
@@ -95,6 +103,22 @@ RSpec.describe Drunker::Executor do
 
     it "returns artifact" do
       expect(executor.run).to eq artifact
+    end
+
+    context "when enabled debug mode" do
+      before { allow(config).to receive(:debug?).and_return(true) }
+
+      it "creates IAM, but does not delete it" do
+        expect(Drunker::Executor::IAM).to receive(:new).with(source: source, artifact: artifact, logger: instance_of(Logger)).and_return(iam)
+        expect(iam).not_to receive(:delete)
+        executor.run
+      end
+
+      it "creates project, but does not delete it" do
+        expect(client).to receive(:create_project).with(project_info)
+        expect(client).not_to receive(:delete_project)
+        executor.run
+      end
     end
 
     context "when happened `CodeBuild is not authorized to perform: sts:AssumeRole` error" do

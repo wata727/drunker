@@ -3,20 +3,29 @@ module Drunker
     desc "run", "Run a command on CodeBuild"
     method_option :concurrency, :type => :numeric, :default => 1
     method_option :loglevel, :type => :string, :default => "INFO", :enum => %w(debug DEBUG info INFO warn WARN error ERROR fatal FATAL)
+    method_option :debug, :type => :boolean, :default => false
     def _run(image, *commands)
+      config = Drunker::Config.new(image: image, commands: commands, concurrency: options[:concurrency], debug: options[:debug])
+      loglevel = config.debug? ? "DEBUG" : options[:loglevel].upcase
       logger = Logger.new(STDERR).tap do |logger|
-        logger.level = Logger.const_get(options[:loglevel].upcase)
+        logger.level = Logger.const_get(loglevel)
       end
+
       logger.info("Creating source....")
       source = Drunker::Source.new(Pathname.pwd, logger: logger)
+
       logger.info("Starting executor...")
-      artifact = Drunker::Executor.new(source: source, commands: commands, image: image, concurrency: options[:concurrency], logger: logger).run
+      artifact = Drunker::Executor.new(source: source, config: config, logger: logger).run
+
       puts artifact.output
       # aggregator
-      logger.info("Deleting source...")
-      source.delete
-      logger.info("Deleting artifact...")
-      artifact.delete
+
+      unless config.debug?
+        logger.info("Deleting source...")
+        source.delete
+        logger.info("Deleting artifact...")
+        artifact.delete
+      end
     end
     map "run" => "_run" # "run" is a Thor reserved word and cannot be defined as command
 

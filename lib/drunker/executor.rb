@@ -1,14 +1,15 @@
 module Drunker
   class Executor
-    def initialize(source:, commands:, image:, concurrency:, logger:)
+    def initialize(source:, config:, logger:)
       @logger = logger
       @project_name = "drunker-executor-#{Time.now.to_i.to_s}"
       @source = source
       logger.info("Creating artifact...")
       @artifact = Drunker::Artifact.new(logger: logger)
-      @commands = commands
-      @image = image
-      @concurrency = concurrency
+      @commands = config.commands
+      @image = config.image
+      @concurrency = config.concurrency
+      @debug = config.debug?
       @client = Aws::CodeBuild::Client.new
     end
 
@@ -47,6 +48,7 @@ module Drunker
     attr_reader :concurrency
     attr_reader :client
     attr_reader :logger
+    attr_reader :debug
 
     def setup_project
       logger.info("Creating IAM resources...")
@@ -76,10 +78,12 @@ module Drunker
 
       yield
 
-      logger.info("Deleting IAM resources...")
-      iam.delete
-      client.delete_project(name: project_name)
-      logger.info("Deleted project: #{project_name}")
+      unless debug
+        logger.info("Deleting IAM resources...")
+        iam.delete
+        client.delete_project(name: project_name)
+        logger.info("Deleted project: #{project_name}")
+      end
     end
 
     def parallel_build
