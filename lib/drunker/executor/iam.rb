@@ -5,15 +5,16 @@ module Drunker
 
       def initialize(source:, artifact:, logger:)
         @logger = logger
+        timestamp = Time.now.to_i.to_s
         iam = Aws::IAM::Resource.new
 
         @role = iam.create_role(
-            role_name: "drunker-codebuild-servie-role",
+            role_name: "drunker-codebuild-servie-role-#{timestamp}",
             assume_role_policy_document: role_json,
         )
         logger.info("Created IAM role: #{role.name}")
         @policy = iam.create_policy(
-            policy_name: "drunker-codebuild-service-policy",
+            policy_name: "drunker-codebuild-service-policy-#{timestamp}",
             policy_document: policy_json(source: source, artifact: artifact)
         )
         logger.info("Created IAM policy: #{policy.policy_name}")
