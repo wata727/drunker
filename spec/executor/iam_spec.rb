@@ -1,10 +1,10 @@
 require "spec_helper"
 
 RSpec.describe Drunker::Executor::IAM do
-  let(:iam) { Drunker::Executor::IAM.new(source: source, artifact: artifact) }
+  let(:iam) { Drunker::Executor::IAM.new(source: source, artifact: artifact, logger: Logger.new("/dev/null")) }
   let(:resource) { double("IAM stub") }
-  let(:role) { double("role stub") }
-  let(:policy) { double(arn: "example-arn") }
+  let(:role) { double(name: "drunker-codebuild-service-role") }
+  let(:policy) { double(arn: "example-arn", name: "drunker-codebuild-service-policy") }
   let(:source) { double(location: "source_location") }
   let(:artifact) { double(bucket: double(name: "artifact_bucket")) }
   before do

@@ -70,7 +70,7 @@ RSpec.describe Drunker::Executor do
     end
 
     it "creates and deletes IAM" do
-      expect(Drunker::Executor::IAM).to receive(:new).and_return(iam)
+      expect(Drunker::Executor::IAM).to receive(:new).with(source: source, artifact: artifact, logger: instance_of(Logger)).and_return(iam)
       expect(iam).to receive(:delete)
       executor.run
     end

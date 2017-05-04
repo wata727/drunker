@@ -40,7 +40,7 @@ module Drunker
 
     def setup_project
       logger.info("Creating IAM resources...")
-      iam = IAM.new(source: source, artifact: artifact)
+      iam = IAM.new(source: source, artifact: artifact, logger: logger)
 
       logger.info("Creating project...")
       begin

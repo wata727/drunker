@@ -3,28 +3,37 @@ module Drunker
     class IAM
       attr_reader :role
 
-      def initialize(source:, artifact:)
+      def initialize(source:, artifact:, logger:)
+        @logger = logger
         iam = Aws::IAM::Resource.new
+
         @role = iam.create_role(
             role_name: "drunker-codebuild-servie-role",
             assume_role_policy_document: role_json,
         )
+        logger.info("Created IAM role: #{role.name}")
         @policy = iam.create_policy(
             policy_name: "drunker-codebuild-service-policy",
             policy_document: policy_json(source: source, artifact: artifact)
         )
+        logger.info("Created IAM policy: #{policy.name}")
         role.attach_policy(policy_arn: policy.arn)
+        logger.debug("Attached #{policy.name} to #{role.name}")
       end
 
       def delete
         role.detach_policy(policy_arn: policy.arn)
+        logger.debug("Detached #{policy.name} from #{role.name}")
         policy.delete
+        logger.info("Deleted IAM policy: #{policy.name}")
         role.delete
+        logger.info("Deleted IAM role: #{role.name}")
       end
 
       private
 
       attr_reader :policy
+      attr_reader :logger
 
       def role_json
         {
