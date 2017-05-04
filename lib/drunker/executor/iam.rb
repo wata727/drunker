@@ -16,16 +16,16 @@ module Drunker
             policy_name: "drunker-codebuild-service-policy",
             policy_document: policy_json(source: source, artifact: artifact)
         )
-        logger.info("Created IAM policy: #{policy.name}")
+        logger.info("Created IAM policy: #{policy.policy_name}")
         role.attach_policy(policy_arn: policy.arn)
-        logger.debug("Attached #{policy.name} to #{role.name}")
+        logger.debug("Attached #{policy.policy_name} to #{role.name}")
       end
 
       def delete
         role.detach_policy(policy_arn: policy.arn)
-        logger.debug("Detached #{policy.name} from #{role.name}")
+        logger.debug("Detached #{policy.policy_name} from #{role.name}")
         policy.delete
-        logger.info("Deleted IAM policy: #{policy.name}")
+        logger.info("Deleted IAM policy: #{policy.policy_name}")
         role.delete
         logger.info("Deleted IAM role: #{role.name}")
       end
