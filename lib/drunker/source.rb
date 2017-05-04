@@ -15,7 +15,7 @@ module Drunker
       set_target_files(target_dir)
       archive(target_dir) do |path|
         bucket.object(name).upload_file(path.to_s)
-        logger.info("Upload source archive: #{location}")
+        logger.info("Uploaded source archive: #{location}")
       end
     end
 

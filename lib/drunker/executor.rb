@@ -22,6 +22,7 @@ module Drunker
           logger.info("Waiting builder: #{finished.count}/#{builders.count}")
           sleep 5
         end
+        logger.info("Build is completed!")
       end
 
       artifact
