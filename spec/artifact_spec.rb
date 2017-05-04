@@ -63,6 +63,15 @@ RSpec.describe Drunker::Artifact do
     end
   end
 
+  context "#replace_build" do
+    before { artifact.instance_variable_set(:@builds, %w(build_1)) }
+
+    it "replaces build id" do
+      artifact.replace_build(before: "drunker-test-executor:build_1", after: "drunker-test-executor:build_1_retry")
+      expect(artifact.instance_variable_get(:@builds)).to eq %w(build_1_retry)
+    end
+  end
+
   context "#delete" do
     it "deletes bucket" do
       expect(bucket).to receive(:delete!)

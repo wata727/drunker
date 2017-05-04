@@ -42,7 +42,9 @@ RSpec.describe Drunker::Executor do
   context "#run" do
     let(:iam) { double(role: double(name: "drunker-service-role")) }
     let(:client) { double("codebuild clinet stub") }
-    let(:builder) { double("builder stub") }
+    let(:builder1) { double(build_id: "project_name:build_id_1") }
+    let(:builder2) { double(build_id: "project_name:build_id_2") }
+    let(:builder3) { double(build_id: "project_name:build_id_3") }
     let(:project_info) do
       {
         name: "drunker-executor-1483196400",
@@ -61,9 +63,19 @@ RSpec.describe Drunker::Executor do
       allow(Aws::CodeBuild::Client).to receive(:new).and_return(client)
       allow(Drunker::Executor::IAM).to receive(:new).and_return(iam)
       allow(client).to receive(:create_project)
-      allow(Drunker::Executor::Builder).to receive(:new).and_return(builder)
-      allow(builder).to receive(:run).and_return("project_name:build_id")
-      allow(builder).to receive(:running?).and_return(false)
+      allow(Drunker::Executor::Builder).to receive(:new).and_return(builder1)
+      allow(builder1).to receive(:run).and_return("project_name:build_id_1")
+      allow(builder2).to receive(:run).and_return("project_name:build_id_2")
+      allow(builder3).to receive(:run).and_return("project_name:build_id_3")
+      allow(builder1).to receive(:access_denied?).and_return(false)
+      allow(builder2).to receive(:access_denied?).and_return(false)
+      allow(builder3).to receive(:access_denied?).and_return(false)
+      allow(builder1).to receive(:running?).and_return(false)
+      allow(builder2).to receive(:running?).and_return(false)
+      allow(builder3).to receive(:running?).and_return(false)
+      allow(builder1).to receive(:refresh)
+      allow(builder2).to receive(:refresh)
+      allow(builder3).to receive(:refresh)
       allow(iam).to receive(:delete)
       allow(client).to receive(:delete_project)
       allow_any_instance_of(Object).to receive(:sleep)
@@ -102,25 +114,23 @@ RSpec.describe Drunker::Executor do
                                                       targets: %w(lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb),
                                                       artifact: artifact,
                                                       logger: instance_of(Logger))
-                                                .and_return(builder)
+                                                .and_return(builder1)
         executor.run
       end
 
       it "runs 1 builder" do
-        expect(builder).to receive(:run)
+        expect(builder1).to receive(:run)
         executor.run
       end
 
       it "sets 1 build to artifact" do
-        expect(artifact).to receive(:set_build).with("project_name:build_id")
+        expect(artifact).to receive(:set_build).with("project_name:build_id_1")
         executor.run
       end
     end
 
     context "when target files is 3 and concurrency is 2" do
       let(:concurrency) { 2 }
-      let(:builder1) { double("builder stub") }
-      let(:builder2) { double("builder stub") }
 
       before do
         allow(Drunker::Executor::Builder).to receive(:new)
@@ -137,10 +147,6 @@ RSpec.describe Drunker::Executor do
                                                       artifact: artifact,
                                                       logger: instance_of(Logger))
                                                 .and_return(builder2)
-        allow(builder1).to receive(:run).and_return("project_name:build_id_1")
-        allow(builder2).to receive(:run).and_return("project_name:build_id_2")
-        allow(builder1).to receive(:running?).and_return(false)
-        allow(builder2).to receive(:running?).and_return(false)
       end
 
       it "creates 2 builders" do
@@ -176,9 +182,6 @@ RSpec.describe Drunker::Executor do
 
     context "when target files is 3 and concurrency is 10" do
       let(:concurrency) { 10 }
-      let(:builder1) { double("builder stub") }
-      let(:builder2) { double("builder stub") }
-      let(:builder3) { double("builder stub") }
 
       before do
         allow(Drunker::Executor::Builder).to receive(:new)
@@ -202,12 +205,6 @@ RSpec.describe Drunker::Executor do
                                                      artifact: artifact,
                                                      logger: instance_of(Logger))
                                                .and_return(builder3)
-        allow(builder1).to receive(:run).and_return("project_name:build_id_1")
-        allow(builder2).to receive(:run).and_return("project_name:build_id_2")
-        allow(builder3).to receive(:run).and_return("project_name:build_id_3")
-        allow(builder1).to receive(:running?).and_return(false)
-        allow(builder2).to receive(:running?).and_return(false)
-        allow(builder3).to receive(:running?).and_return(false)
       end
 
       it "creates 3 builders" do
@@ -250,10 +247,8 @@ RSpec.describe Drunker::Executor do
       end
     end
 
-    context "when all builders are running" do
+    context "when running multiple builder" do
       let(:concurrency) { 2 }
-      let(:builder1) { double("builder stub") }
-      let(:builder2) { double("builder stub") }
 
       before do
         allow(Drunker::Executor::Builder).to receive(:new)
@@ -270,82 +265,76 @@ RSpec.describe Drunker::Executor do
                                                      artifact: artifact,
                                                      logger: instance_of(Logger))
                                                .and_return(builder2)
-        allow(builder1).to receive(:run).and_return("project_name:build_id_1")
-        allow(builder2).to receive(:run).and_return("project_name:build_id_2")
-        allow(builder1).to receive(:running?).and_return(true)
-        allow(builder2).to receive(:running?).and_return(true)
         allow_any_instance_of(Drunker::Executor).to receive(:loop).and_yield
       end
 
-      it "calls sleep in loop" do
-        expect_any_instance_of(Object).to receive(:sleep)
-        executor.run
-      end
-    end
+      context "and all builders are running" do
+        before do
+          allow(builder1).to receive(:running?).and_return(true)
+          allow(builder2).to receive(:running?).and_return(true)
+        end
 
-    context "when 1 builder is running yet" do
-      let(:concurrency) { 2 }
-      let(:builder1) { double("builder stub") }
-      let(:builder2) { double("builder stub") }
-
-      before do
-        allow(Drunker::Executor::Builder).to receive(:new)
-                                               .with(project_name: "drunker-executor-1483196400",
-                                                     commands: commands,
-                                                     targets: %w(lib/drunker.rb lib/drunker/cli.rb),
-                                                     artifact: artifact,
-                                                     logger: instance_of(Logger))
-                                               .and_return(builder1)
-        allow(Drunker::Executor::Builder).to receive(:new)
-                                               .with(project_name: "drunker-executor-1483196400",
-                                                     commands: commands,
-                                                     targets: %w(lib/drunker/version.rb),
-                                                     artifact: artifact,
-                                                     logger: instance_of(Logger))
-                                               .and_return(builder2)
-        allow(builder1).to receive(:run).and_return("project_name:build_id_1")
-        allow(builder2).to receive(:run).and_return("project_name:build_id_2")
-        allow(builder1).to receive(:running?).and_return(true)
-        allow(builder2).to receive(:running?).and_return(false)
-        allow_any_instance_of(Drunker::Executor).to receive(:loop).and_yield
+        it "calls sleep in loop" do
+          expect_any_instance_of(Object).to receive(:sleep)
+          executor.run
+        end
       end
 
-      it "calls sleep in loop" do
-        expect_any_instance_of(Object).to receive(:sleep)
-        executor.run
-      end
-    end
+      context "and 1 builder is running yet" do
+        before do
+          allow(builder1).to receive(:running?).and_return(true)
+        end
 
-    context "when all builders are successed" do
-      let(:concurrency) { 2 }
-      let(:builder1) { double("builder stub") }
-      let(:builder2) { double("builder stub") }
-
-      before do
-        allow(Drunker::Executor::Builder).to receive(:new)
-                                               .with(project_name: "drunker-executor-1483196400",
-                                                     commands: commands,
-                                                     targets: %w(lib/drunker.rb lib/drunker/cli.rb),
-                                                     artifact: artifact,
-                                                     logger: instance_of(Logger))
-                                               .and_return(builder1)
-        allow(Drunker::Executor::Builder).to receive(:new)
-                                               .with(project_name: "drunker-executor-1483196400",
-                                                     commands: commands,
-                                                     targets: %w(lib/drunker/version.rb),
-                                                     artifact: artifact,
-                                                     logger: instance_of(Logger))
-                                               .and_return(builder2)
-        allow(builder1).to receive(:run).and_return("project_name:build_id_1")
-        allow(builder2).to receive(:run).and_return("project_name:build_id_2")
-        allow(builder1).to receive(:running?).and_return(false)
-        allow(builder2).to receive(:running?).and_return(false)
-        allow_any_instance_of(Drunker::Executor).to receive(:loop).and_yield
+        it "calls sleep in loop" do
+          expect_any_instance_of(Object).to receive(:sleep)
+          executor.run
+        end
       end
 
-      it "does not call sleep in loop" do
-        expect_any_instance_of(Object).not_to receive(:sleep)
-        executor.run
+      context "and all builders are successed" do
+        it "does not call sleep in loop" do
+          expect_any_instance_of(Object).not_to receive(:sleep)
+          executor.run
+        end
+      end
+
+      context "and 1 builder has access denied error" do
+        before do
+          allow(builder1).to receive(:access_denied?).and_return(true)
+          allow(builder1).to receive(:running?).and_return(true)
+          allow(builder1).to receive(:retry).and_return("project_name:build_id_1_retry")
+          allow(artifact).to receive(:replace_build)
+        end
+
+        context "and builder is retriable" do
+          before { allow(builder1).to receive(:retriable?).and_return(true) }
+
+          it "reties only access denieded builder" do
+            expect(builder1).to receive(:retry).and_return("project_name:build_id_1_retry")
+            expect(builder2).not_to receive(:retry)
+            executor.run
+          end
+
+          it "replaces access denieded build id" do
+            expect(artifact).to receive(:replace_build).with(before: "project_name:build_id_1", after: "project_name:build_id_1_retry")
+            executor.run
+          end
+        end
+
+        context "and builder is not retriable" do
+          before { allow(builder1).to receive(:retriable?).and_return(false) }
+
+          it "does not retry all builders" do
+            expect(builder1).not_to receive(:retry)
+            expect(builder2).not_to receive(:retry)
+            executor.run
+          end
+
+          it "does not replace build id" do
+            expect(artifact).not_to receive(:replace_build)
+            executor.run
+          end
+        end
       end
     end
   end

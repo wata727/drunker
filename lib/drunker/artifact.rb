@@ -36,6 +36,13 @@ module Drunker
       logger.debug("Set build: { project_name: #{project_name}, build_id: #{build_id}, artifact: #{name} }")
     end
 
+    def replace_build(before:, after:)
+      build_id = before.split(":")[1]
+      builds.delete(build_id)
+      logger.debug("Unset build: { build_id: #{build_id}, artifact: #{name} }")
+      set_build(after)
+    end
+
     def delete
       bucket.delete!
       logger.info("Deleted bucket: #{bucket.name}")

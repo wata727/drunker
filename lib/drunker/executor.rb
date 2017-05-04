@@ -17,10 +17,19 @@ module Drunker
         builders = parallel_build
 
         loop do
+          builders.select(&:access_denied?).each do |builder|
+            failed_id = builder.build_id
+            if builder.retriable?
+              build_id = builder.retry
+              artifact.replace_build(before: failed_id ,after: build_id)
+            end
+          end
+
           running, finished = builders.partition(&:running?)
           break if running.count.zero?
           logger.info("Waiting builder: #{finished.count}/#{builders.count}")
           sleep 5
+          builders.each(&:refresh)
         end
         logger.info("Build is completed!")
       end
