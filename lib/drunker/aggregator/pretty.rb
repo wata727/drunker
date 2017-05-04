@@ -15,6 +15,10 @@ module Drunker
           puts
         end
       end
+
+      def exit_status
+        0
+      end
     end
   end
 end

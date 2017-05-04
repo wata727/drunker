@@ -17,7 +17,9 @@ module Drunker
       logger.info("Starting executor...")
       builders, artifact = Drunker::Executor.new(source: source, config: config, logger: logger).run
 
-      Drunker::Aggregator.run(builders: builders, artifact: artifact)
+      logger.info("Starting aggregator...")
+      aggregator = Drunker::Aggregator.create(builders: builders, artifact: artifact)
+      aggregator.run
 
       unless config.debug?
         logger.info("Deleting source...")
@@ -25,6 +27,8 @@ module Drunker
         logger.info("Deleting artifact...")
         artifact.delete
       end
+
+      exit aggregator.exit_status
     end
     map "run" => "_run" # "run" is a Thor reserved word and cannot be defined as command
 

@@ -48,4 +48,10 @@ OUTPUT
       expect { aggregator.run }.to output(output).to_stdout
     end
   end
+
+  describe "#exit_status" do
+    it "returns 0 as exit status code" do
+      expect(aggregator.exit_status).to eq 0
+    end
+  end
 end
