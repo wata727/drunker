@@ -1,11 +1,22 @@
 module Drunker
   class CLI < Thor
-    desc "run", "Run a command on CodeBuild"
-    method_option :concurrency, :type => :numeric, :default => 1
-    method_option :loglevel, :type => :string, :default => "INFO", :enum => %w(debug DEBUG info INFO warn WARN error ERROR fatal FATAL)
-    method_option :debug, :type => :boolean, :default => false
+    desc "run [IMAGE] [COMMAND]", "Run a command on CodeBuild"
+    method_option :concurrency, :type => :numeric, :default => 1, :desc => "Build concurrency"
+    method_option :loglevel, :type => :string, :default => "INFO", :enum => %w(debug DEBUG info INFO warn WARN error ERROR fatal FATAL), :desc => "Output log level"
+    method_option :debug, :type => :boolean, :default => false, :desc => "Enable debug mode. This mode does not delete the AWS resources created by Drunker"
+    method_option :access_key, :type => :string, :desc => "AWS access key token used by Drunker"
+    method_option :secret_key, :type => :string, :desc => "AWS secret key token used by Drunker"
+    method_option :region, :type => :string, :desc => "AWS region in which resources is created by Drunker"
+    method_option :profile_name, :type => :string, :desc => "AWS shared profile name used by Drunker"
     def _run(image, *commands)
-      config = Drunker::Config.new(image: image, commands: commands, concurrency: options[:concurrency], debug: options[:debug])
+      config = Drunker::Config.new(image: image,
+                                   commands: commands,
+                                   concurrency: options[:concurrency],
+                                   debug: options[:debug],
+                                   access_key: options[:access_key],
+                                   secret_key: options[:secret_key],
+                                   region: options[:region],
+                                   profile_name: options[:profile_name])
       loglevel = config.debug? ? "DEBUG" : options[:loglevel].upcase
       logger = Logger.new(STDERR).tap do |logger|
         logger.level = Logger.const_get(loglevel)
@@ -13,7 +24,8 @@ module Drunker
       end
 
       logger.info("Creating source....")
-      source = Drunker::Source.new(Pathname.pwd, logger: logger)
+      source = Drunker::Source.new(Pathname.pwd, config: config, logger: logger)
+
 
       logger.info("Starting executor...")
       builders, artifact = Drunker::Executor.new(source: source, config: config, logger: logger).run

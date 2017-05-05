@@ -7,11 +7,10 @@ module Drunker
     attr_reader :stderr
     attr_reader :status_code
 
-    def initialize(logger:)
-      @logger = logger
+    def initialize(config:, logger:)
       timestamp = Time.now.to_i.to_s
+      s3 = Aws::S3::Resource.new(client: Aws::S3::Client.new(config.aws_client_options))
 
-      @s3 = Aws::S3::Resource.new
       @bucket = s3.create_bucket(bucket: "drunker-artifact-store-#{timestamp}")
       logger.info("Created artifact bucket: #{bucket.name}")
       @name = "drunker_artifact_#{timestamp}"
@@ -19,6 +18,7 @@ module Drunker
       @stderr = "drunker_artifact_#{timestamp}_stderr.txt"
       @status_code = "drunker_artifact_#{timestamp}_status_code.txt"
       @builds = []
+      @logger = logger
     end
 
     def to_h
@@ -58,10 +58,9 @@ module Drunker
 
     private
 
-    attr_reader :s3
     attr_reader :builds
-    attr_reader :logger
     attr_reader :name
+    attr_reader :logger
 
     def fetch_content(object_id)
       logger.debug("Get artifact: #{object_id}")

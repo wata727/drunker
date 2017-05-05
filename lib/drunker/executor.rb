@@ -3,17 +3,14 @@ module Drunker
     RETRY_LIMIT = 10
 
     def initialize(source:, config:, logger:)
-      @logger = logger
       @project_name = "drunker-executor-#{Time.now.to_i.to_s}"
       @source = source
       logger.info("Creating artifact...")
-      @artifact = Drunker::Artifact.new(logger: logger)
-      @commands = config.commands
-      @image = config.image
-      @concurrency = config.concurrency
-      @debug = config.debug?
-      @client = Aws::CodeBuild::Client.new
+      @artifact = Drunker::Artifact.new(config: config, logger: logger)
+      @config = config
+      @client = Aws::CodeBuild::Client.new(config.aws_client_options)
       @builders = []
+      @logger = logger
     end
 
     def run
@@ -57,17 +54,14 @@ module Drunker
     attr_reader :project_name
     attr_reader :source
     attr_reader :artifact
-    attr_reader :commands
-    attr_reader :image
-    attr_reader :concurrency
+    attr_reader :config
     attr_reader :client
-    attr_reader :logger
-    attr_reader :debug
     attr_reader :builders
+    attr_reader :logger
 
     def setup_project
       logger.info("Creating IAM resources...")
-      iam = IAM.new(source: source, artifact: artifact, logger: logger)
+      iam = IAM.new(source: source, artifact: artifact, config: config, logger: logger)
       retry_count = 0
 
       logger.info("Creating project...")
@@ -78,7 +72,7 @@ module Drunker
           artifacts: artifact.to_h,
           environment: {
             type: "LINUX_CONTAINER",
-            image: image,
+            image: config.image,
             compute_type: "BUILD_GENERAL1_SMALL",
           },
           service_role: iam.role.name
@@ -99,7 +93,7 @@ module Drunker
 
       yield
 
-      unless debug
+      unless config.debug?
         logger.info("Deleting IAM resources...")
         iam.delete
         client.delete_project(name: project_name)
@@ -110,10 +104,10 @@ module Drunker
     def parallel_build
       builders = []
 
-      files_list = source.target_files.each_slice(source.target_files.count.quo(concurrency).ceil).to_a
-      logger.info("Start parallel build: { files: #{source.target_files.count}, concurrency: #{concurrency}, real_concurrency: #{files_list.count} }")
+      files_list = source.target_files.each_slice(source.target_files.count.quo(config.concurrency).ceil).to_a
+      logger.info("Start parallel build: { files: #{source.target_files.count}, concurrency: #{config.concurrency}, real_concurrency: #{files_list.count} }")
       files_list.to_a.each do |files|
-        builder = Builder.new(project_name: project_name, commands: commands, targets: files, artifact: artifact, logger: logger)
+        builder = Builder.new(project_name: project_name, targets: files, artifact: artifact, config: config, logger: logger)
         build_id = builder.run
         artifact.set_build(build_id)
         builders << builder

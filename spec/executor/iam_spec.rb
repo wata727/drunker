@@ -1,7 +1,10 @@
 require "spec_helper"
 
 RSpec.describe Drunker::Executor::IAM do
-  let(:iam) { Drunker::Executor::IAM.new(source: source, artifact: artifact, logger: Logger.new("/dev/null")) }
+  let(:aws_opts) { double("AWS options stub") }
+  let(:config) { double(aws_client_options: aws_opts) }
+  let(:client) { double("client stub") }
+  let(:iam) { Drunker::Executor::IAM.new(source: source, artifact: artifact, config: config, logger: Logger.new("/dev/null")) }
   let(:resource) { double("IAM stub") }
   let(:role) { double(name: "drunker-codebuild-service-role-1483196400") }
   let(:policy) { double(arn: "example-arn", policy_name: "drunker-codebuild-service-policy-1483196400") }
@@ -9,6 +12,7 @@ RSpec.describe Drunker::Executor::IAM do
   let(:artifact) { double(bucket: double(name: "artifact_bucket")) }
   before do
     Timecop.freeze(Time.local(2017))
+    allow(Aws::IAM::Client).to receive(:new).and_return(client)
     allow(Aws::IAM::Resource).to receive(:new).and_return(resource)
     allow(resource).to receive(:create_role).and_return(role)
     allow(resource).to receive(:create_policy).and_return(policy)
@@ -17,6 +21,12 @@ RSpec.describe Drunker::Executor::IAM do
   after { Timecop.return }
 
   describe "#initialize" do
+    it "uses IAM client with config" do
+      expect(Aws::IAM::Client).to receive(:new).with(aws_opts).and_return(client)
+      expect(Aws::IAM::Resource).to receive(:new).with(client: client).and_return(resource)
+      iam
+    end
+
     it "creates IAM role" do
       json = {
         Version: "2012-10-17",

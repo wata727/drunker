@@ -2,15 +2,15 @@ module Drunker
   class Source
     attr_reader :target_files
 
-    def initialize(target_dir, logger:)
-      @logger = logger
+    def initialize(target_dir, config:, logger:)
       timestamp = Time.now.to_i.to_s
+      s3 = Aws::S3::Resource.new(client: Aws::S3::Client.new(config.aws_client_options))
 
-      @s3 = Aws::S3::Resource.new
       @bucket = s3.create_bucket(bucket: "drunker-source-store-#{timestamp}")
       logger.info("Created source bucket: #{bucket.name}")
       @name = "drunker_source_#{timestamp}.zip"
       @target_files = []
+      @logger = logger
 
       set_target_files(target_dir)
       archive(target_dir) do |path|
@@ -37,7 +37,6 @@ module Drunker
 
     private
 
-    attr_reader :s3
     attr_reader :bucket
     attr_reader :name
     attr_reader :logger

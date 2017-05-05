@@ -3,10 +3,10 @@ module Drunker
     class IAM
       attr_reader :role
 
-      def initialize(source:, artifact:, logger:)
-        @logger = logger
+      def initialize(source:, artifact:, config:, logger:)
         timestamp = Time.now.to_i.to_s
-        iam = Aws::IAM::Resource.new
+        client = Aws::IAM::Client.new(config.aws_client_options)
+        iam = Aws::IAM::Resource.new(client: client)
 
         @role = iam.create_role(
             role_name: "drunker-codebuild-servie-role-#{timestamp}",
@@ -20,6 +20,7 @@ module Drunker
         logger.info("Created IAM policy: #{policy.policy_name}")
         role.attach_policy(policy_arn: policy.arn)
         logger.debug("Attached #{policy.policy_name} to #{role.name}")
+        @logger = logger
       end
 
       def delete

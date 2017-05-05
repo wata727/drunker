@@ -26,7 +26,7 @@ RSpec.describe Drunker::CLI do
     it "creates new source" do
       expect(logger).to receive(:level=).with(Logger::INFO)
       expect(logger).to receive(:formatter=)
-      expect(Drunker::Source).to receive(:new).with(Pathname.pwd, logger: logger).and_return(source)
+      expect(Drunker::Source).to receive(:new).with(Pathname.pwd, config: config, logger: logger).and_return(source)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
@@ -40,7 +40,11 @@ RSpec.describe Drunker::CLI do
       expect(Drunker::Config).to receive(:new).with(image: "wata727/rubocop",
                                                     commands: %w(rubocop --fail-level=F FILES),
                                                     concurrency: 1,
-                                                    debug: false)
+                                                    debug: false,
+                                                    access_key: nil,
+                                                    secret_key: nil,
+                                                    region: nil,
+                                                    profile_name: nil)
                                               .and_return(config)
       expect(Drunker::Executor).to receive(:new).with(source: source, config: config, logger: logger).and_return(executor)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
@@ -77,18 +81,22 @@ RSpec.describe Drunker::CLI do
       end
     end
 
-    context "when enabled debug mode" do
+    context "with modified config (enabled debug mode)" do
       before { allow(config).to receive(:debug?).and_return(true) }
 
-      it "creates new executor with modified config" do
+      it "creates new executor" do
         expect(logger).to receive(:level=).with(Logger::DEBUG)
         expect(Drunker::Config).to receive(:new).with(image: "wata727/rubocop",
                                                       commands: %w(rubocop --fail-level=F FILES),
                                                       concurrency: 10,
-                                                      debug: true)
+                                                      debug: true,
+                                                      access_key: "ACCESS_KEY",
+                                                      secret_key: "SECRET_KEY",
+                                                      region: "us-east-1",
+                                                      profile_name: "PROFILE_NAME")
                                        .and_return(config)
         expect(Drunker::Executor).to receive(:new).with(source: source, config: config, logger: logger).and_return(executor)
-        Drunker::CLI.start(%w(run --concurrency=10 --debug wata727/rubocop rubocop --fail-level=F FILES))
+        Drunker::CLI.start(%w(run --concurrency=10 --debug --access-key=ACCESS_KEY --secret-key=SECRET_KEY --region=us-east-1 --profile-name=PROFILE_NAME wata727/rubocop rubocop --fail-level=F FILES))
       end
 
       it "does not delete source" do

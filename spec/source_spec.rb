@@ -2,8 +2,11 @@ require "spec_helper"
 
 RSpec.describe Drunker::Source do
   let(:path) { Pathname.pwd }
+  let(:aws_opts) { double("AWS options stub") }
+  let(:config) { double(aws_client_options: aws_opts) }
   let(:logger) { Logger.new("/dev/null") }
-  let(:source) { Drunker::Source.new(path, logger: logger) }
+  let(:source) { Drunker::Source.new(path, config: config, logger: logger) }
+  let(:client) { double("s3 client stub") }
   let(:s3) { double("s3 stub") }
   let(:bucket) { double(name: "drunker-source-store-1483196400") }
   let(:object) { double("object stub") }
@@ -12,6 +15,7 @@ RSpec.describe Drunker::Source do
   before do
     Timecop.freeze(Time.local(2017))
 
+    allow(Aws::S3::Client).to receive(:new).and_return(client)
     allow(Aws::S3::Resource).to receive(:new).and_return(s3)
     allow(s3).to receive(:create_bucket).and_return(bucket)
     allow(bucket).to receive(:object).and_return(object)
@@ -20,6 +24,12 @@ RSpec.describe Drunker::Source do
   after { Timecop.return }
 
   describe "#initiliaze" do
+    it "uses s3 client with config options" do
+      expect(Aws::S3::Client).to receive(:new).with(aws_opts).and_return(client)
+      expect(Aws::S3::Resource).to receive(:new).with(client: client).and_return(s3)
+      source
+    end
+
     it "creates s3 bucket" do
       expect(s3).to receive(:create_bucket).with(bucket: "drunker-source-store-1483196400").and_return(bucket)
       source

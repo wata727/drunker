@@ -3,16 +3,26 @@ require "spec_helper"
 RSpec.describe Drunker::Artifact do
   let(:s3) { double("s3 stub") }
   let(:bucket) { double(name: "drunker-artifact-store-1483196400") }
-  let(:artifact) { Drunker::Artifact.new(logger: Logger.new("/dev/null")) }
+  let(:aws_opts) { double("AWS options stub") }
+  let(:config) { double(aws_client_options: aws_opts) }
+  let(:client) { double("client stub") }
+  let(:artifact) { Drunker::Artifact.new(config: config, logger: Logger.new("/dev/null")) }
   before do
     Timecop.freeze(Time.local(2017))
 
+    allow(Aws::S3::Client).to receive(:new).and_return(client)
     allow(Aws::S3::Resource).to receive(:new).and_return(s3)
     allow(s3).to receive(:create_bucket).and_return(bucket)
   end
   after { Timecop.return }
 
   describe "#initialize" do
+    it "uses client with config" do
+      expect(Aws::S3::Client).to receive(:new).with(aws_opts).and_return(client)
+      expect(Aws::S3::Resource).to receive(:new).with(client: client).and_return(s3)
+      artifact
+    end
+
     it "creates s3 bucket" do
       expect(s3).to receive(:create_bucket).with(bucket: "drunker-artifact-store-1483196400").and_return(bucket)
       artifact

@@ -3,9 +3,16 @@ require "spec_helper"
 RSpec.describe Drunker::Executor::Builder do
   let(:project_name) { "drunker-project-name" }
   let(:commands) { %w(rubocop --fail-level=F) }
+  let(:aws_opts) { double("AWS options stub") }
+  let(:config) do
+    double(
+      commands: commands,
+      aws_client_options: aws_opts
+    )
+  end
   let(:targets) { %w(lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb) }
   let(:artifact) { double(stdout: "stdout.txt", stderr: "stderr.txt", status_code: "status_code.txt") }
-  let(:builder) { Drunker::Executor::Builder.new(project_name: project_name, commands: commands, targets: targets, artifact: artifact, logger: Logger.new("/dev/null")) }
+  let(:builder) { Drunker::Executor::Builder.new(project_name: project_name, targets: targets, artifact: artifact, config: config, logger: Logger.new("/dev/null")) }
   let(:client) { double("codebuild client stub") }
 
   before do
@@ -13,11 +20,16 @@ RSpec.describe Drunker::Executor::Builder do
   end
 
   describe "#initialize" do
+    it "uses CodeBuild client with config" do
+      expect(Aws::CodeBuild::Client).to receive(:new).with(aws_opts).and_return(client)
+      expect(builder.instance_variable_get(:@client)).to eq client
+    end
+
     it "sets attributes" do
       expect(builder.instance_variable_get(:@project_name)).to eq project_name
-      expect(builder.instance_variable_get(:@commands)).to eq commands
       expect(builder.instance_variable_get(:@targets)).to eq targets
       expect(builder.instance_variable_get(:@artifact)).to eq artifact
+      expect(builder.instance_variable_get(:@config)).to eq config
     end
   end
 

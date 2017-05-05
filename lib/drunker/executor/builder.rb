@@ -12,14 +12,14 @@ module Drunker
 
       attr_reader :build_id
 
-      def initialize(project_name:, commands:, targets:, artifact:, logger:)
-        @logger = logger
+      def initialize(project_name:, targets:, artifact:, config:, logger:)
         @project_name = project_name
-        @commands = commands
         @targets = targets
         @artifact = artifact
-        @client = Aws::CodeBuild::Client.new
+        @config = config
+        @client = Aws::CodeBuild::Client.new(config.aws_client_options)
         @retry_count = 0
+        @logger = logger
       end
 
       def run
@@ -83,12 +83,12 @@ module Drunker
       private
 
       attr_reader :project_name
-      attr_reader :commands
       attr_reader :targets
       attr_reader :artifact
+      attr_reader :config
       attr_reader :client
-      attr_reader :logger
       attr_reader :retry_count
+      attr_reader :logger
 
       def result
         @result ||= client.batch_get_builds(ids: [build_id])
@@ -115,7 +115,7 @@ module Drunker
       def interpolate_commands
         variables = %w(FILES)
 
-        commands.map do |command|
+        config.commands.map do |command|
           variables.include?(command) ? targets : command
         end.flatten
       end
