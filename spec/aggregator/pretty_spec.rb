@@ -47,6 +47,38 @@ STATUS_CODE: 1
 OUTPUT
       expect { aggregator.run }.to output(output).to_stdout
     end
+
+    context "when body is Drunker::Artifact::NOT_FOUND" do
+      before do
+        success_body = {
+          stdout: Drunker::Artifact::NOT_FOUND,
+          stderr: Drunker::Artifact::NOT_FOUND,
+          status_code: Drunker::Artifact::NOT_FOUND
+        }
+        failed_body = {
+          stdout: Drunker::Artifact::NOT_FOUND,
+          stderr: Drunker::Artifact::NOT_FOUND,
+          status_code: Drunker::Artifact::NOT_FOUND
+        }
+        allow(artifact).to receive(:output).and_return("project_name:build_id_1" => success_body, "project_name:build_id_2" => failed_body)
+      end
+
+      it "outputs pretty print" do
+        output =<<OUTPUT
+
+-----------------------------------Build ID: project_name:build_id_1-----------------------------------
+RESULT: SUCCESS
+-------------------------------------------------------------------------------------------
+
+
+-----------------------------------Build ID: project_name:build_id_2-----------------------------------
+RESULT: FAILED
+-------------------------------------------------------------------------------------------
+
+OUTPUT
+        expect { aggregator.run }.to output(output).to_stdout
+      end
+    end
   end
 
   describe "#exit_status" do

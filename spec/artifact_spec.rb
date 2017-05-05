@@ -65,6 +65,32 @@ RSpec.describe Drunker::Artifact do
       }
       expect(artifact.output).to eq("drunker-test-executor:build_1" => build_1_body, "drunker-test-executor:build_2" => build_2_body)
     end
+
+    context "when raise Aws::S3::Errors::NoSuchKey" do
+      let(:exception) { Aws::S3::Errors::NoSuchKey.new(nil, "The specified key does not exist.") }
+      before do
+        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_stdout.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_stderr.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_status_code.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_stdout.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_stderr.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_status_code.txt").and_raise(exception)
+      end
+
+      it "returns artifact hash" do
+        build_1_body = {
+          stdout: Drunker::Artifact::NOT_FOUND,
+          stderr: Drunker::Artifact::NOT_FOUND,
+          status_code: Drunker::Artifact::NOT_FOUND
+        }
+        build_2_body = {
+          stdout: Drunker::Artifact::NOT_FOUND,
+          stderr: Drunker::Artifact::NOT_FOUND,
+          status_code: Drunker::Artifact::NOT_FOUND
+        }
+        expect(artifact.output).to eq("drunker-test-executor:build_1" => build_1_body, "drunker-test-executor:build_2" => build_2_body)
+      end
+    end
   end
 
   describe "#set_build" do

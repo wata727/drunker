@@ -8,9 +8,9 @@ module Drunker
           puts
           puts "-----------------------------------Build ID: #{build}-----------------------------------"
           puts "RESULT: #{builder.success? ? "SUCCESS" : "FAILED"}"
-          puts "STDOUT: #{body[:stdout]}"
-          puts "STDERR: #{body[:stderr]}"
-          puts "STATUS_CODE: #{body[:status_code]}"
+          puts "STDOUT: #{body[:stdout]}" unless body[:stdout] == Drunker::Artifact::NOT_FOUND
+          puts "STDERR: #{body[:stderr]}" unless body[:stderr] == Drunker::Artifact::NOT_FOUND
+          puts "STATUS_CODE: #{body[:status_code]}" unless body[:status_code] == Drunker::Artifact::NOT_FOUND
           puts "-------------------------------------------------------------------------------------------"
           puts
         end

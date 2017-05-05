@@ -1,5 +1,7 @@
 module Drunker
   class Artifact
+    NOT_FOUND = "ARTIFACT_NOT_FOUND"
+
     attr_reader :bucket
     attr_reader :stdout
     attr_reader :stderr
@@ -64,6 +66,9 @@ module Drunker
     def fetch_content(object_id)
       logger.debug("Get artifact: #{object_id}")
       bucket.object(object_id).get.body.string
+    rescue Aws::S3::Errors::NoSuchKey
+      logger.debug("Artifact not found: #{object_id}")
+      NOT_FOUND
     end
   end
 end
