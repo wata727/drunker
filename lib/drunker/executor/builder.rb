@@ -66,6 +66,20 @@ module Drunker
         @result = nil
       end
 
+      def errors
+        return unless failed?
+        result.builds[0].phases.each_with_object([]) do |phase, results|
+          phase.contexts&.each do |context|
+            results << {
+              phase_type: phase.phase_type,
+              phase_status: phase.phase_status,
+              status: context.status_code,
+              message: context.message
+            }
+          end
+        end
+      end
+
       private
 
       attr_reader :project_name

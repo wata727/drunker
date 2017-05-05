@@ -275,4 +275,55 @@ MESSAGE
       expect(builder.instance_variable_get(:@result)).to be_nil
     end
   end
+
+  describe "#errors" do
+    let(:build) do
+      double(
+        build_status: "FAILED",
+        phases: [
+          double(contexts: nil),
+          double(
+            phase_type: "DOWNLOAD_SOURCE",
+            phase_status: "CLIENT_ERROR",
+            contexts: contexts
+          )
+        ]
+      )
+    end
+    let(:contexts) do
+      [
+        double(
+          status_code: "BUILD_CONTAINER_UNABLE_TO_PULL_IMAGE",
+          message: "Unable to pull customer's container image."
+        )
+      ]
+    end
+    before do
+      builder.instance_variable_set(:@build_id, "build_id")
+      allow(client).to receive(:batch_get_builds).with(ids: ["build_id"]).and_return(double(builds: [build]))
+    end
+
+    it "returns errors" do
+      error = {
+          phase_type: "DOWNLOAD_SOURCE",
+          phase_status: "CLIENT_ERROR",
+          status: "BUILD_CONTAINER_UNABLE_TO_PULL_IMAGE",
+          message: "Unable to pull customer's container image."
+      }
+      expect(builder.errors).to eq([error])
+    end
+
+    context "when build_status is not failed" do
+      let(:build) do
+        double(
+          build_status: "SUCCEEDED",
+          phases: [double(contexts: nil)]
+        )
+      end
+
+      it "returns nil" do
+        expect(builder.errors).to be_nil
+      end
+    end
+  end
 end

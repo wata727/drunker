@@ -30,6 +30,16 @@ module Drunker
           end
 
           running, finished = builders.partition(&:running?)
+          finished.select(&:failed?).each do |failed|
+            failed.errors.each do |error|
+              logger.warn("Build failed: #{failed.build_id}")
+              logger.warn("\tphase_type: #{error[:phase_type]}")
+              logger.warn("\tphase_status: #{error[:phase_status]}")
+              logger.warn("\tstatus: #{error[:status]}")
+              logger.warn("\tmessage: #{error[:message]}")
+            end
+          end
+
           break if running.count.zero?
           logger.info("Waiting builder: #{finished.count}/#{builders.count}")
           sleep 5
