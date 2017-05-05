@@ -9,6 +9,7 @@ module Drunker
       loglevel = config.debug? ? "DEBUG" : options[:loglevel].upcase
       logger = Logger.new(STDERR).tap do |logger|
         logger.level = Logger.const_get(loglevel)
+        logger.formatter = Proc.new { |severity, _datetime, _progname, message| "#{severity}: #{message}\n" } unless loglevel == "DEBUG"
       end
 
       logger.info("Creating source....")

@@ -25,12 +25,14 @@ RSpec.describe Drunker::CLI do
 
     it "creates new source" do
       expect(logger).to receive(:level=).with(Logger::INFO)
+      expect(logger).to receive(:formatter=)
       expect(Drunker::Source).to receive(:new).with(Pathname.pwd, logger: logger).and_return(source)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     it "sets log level" do
       expect(logger).to receive(:level=).with(Logger::DEBUG)
+      expect(logger).not_to receive(:formatter=)
       Drunker::CLI.start(%w(run --loglevel=debug wata727/rubocop rubocop --fail-level=F FILES))
     end
 
