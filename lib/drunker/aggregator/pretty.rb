@@ -17,7 +17,9 @@ module Drunker
       end
 
       def exit_status
-        0
+        artifact.output.map do |_build, body|
+          body[:status_code] == Drunker::Artifact::NOT_FOUND ? 1 : body[:status_code].to_i
+        end.max
       end
     end
   end

@@ -48,7 +48,7 @@ OUTPUT
       expect { aggregator.run }.to output(output).to_stdout
     end
 
-    context "when body is Drunker::Artifact::NOT_FOUND" do
+    context "when artifact not found" do
       before do
         success_body = {
           stdout: Drunker::Artifact::NOT_FOUND,
@@ -82,8 +82,42 @@ OUTPUT
   end
 
   describe "#exit_status" do
-    it "returns 0 as exit status code" do
-      expect(aggregator.exit_status).to eq 0
+    before do
+      success_body = {
+        stdout: "Success!",
+        stderr: "warning!",
+        status_code: "0"
+      }
+      failed_body = {
+        stdout: "Trying...",
+        stderr: "Failed...",
+        status_code: "1"
+      }
+      allow(artifact).to receive(:output).and_return("project_name:build_id_1" => success_body, "project_name:build_id_2" => failed_body)
+    end
+
+    it "returns 1 as exit status code" do
+      expect(aggregator.exit_status).to eq 1
+    end
+
+    context "when artifact not found" do
+      before do
+        success_body = {
+          stdout: Drunker::Artifact::NOT_FOUND,
+          stderr: Drunker::Artifact::NOT_FOUND,
+          status_code: Drunker::Artifact::NOT_FOUND
+        }
+        failed_body = {
+          stdout: Drunker::Artifact::NOT_FOUND,
+          stderr: Drunker::Artifact::NOT_FOUND,
+          status_code: Drunker::Artifact::NOT_FOUND
+        }
+        allow(artifact).to receive(:output).and_return("project_name:build_id_1" => success_body, "project_name:build_id_2" => failed_body)
+      end
+
+      it "returns 1 as exit status code" do
+        expect(aggregator.exit_status).to eq 1
+      end
     end
   end
 end

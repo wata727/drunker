@@ -30,7 +30,7 @@ module Drunker
     end
 
     def output
-      builds.each_with_object({}) do |build, results|
+      @output ||= builds.each_with_object({}) do |build, results|
         project_name, build_id = build.split(":")
         results[build] = {}.tap do |body|
           body[:stdout] = fetch_content("#{build_id}/#{project_name}/#{stdout}")

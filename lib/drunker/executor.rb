@@ -46,6 +46,7 @@ module Drunker
           builders.each(&:refresh)
         end
         logger.info("Build is completed!")
+        artifact.output
       end
 
       [builders, artifact]
