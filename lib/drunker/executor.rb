@@ -75,7 +75,8 @@ module Drunker
             image: config.image,
             compute_type: config.compute_type,
           },
-          service_role: iam.role.name
+          service_role: iam.role.name,
+          timeout_in_minutes: config.timeout,
         )
         logger.info("Created project: #{project_name}")
       # Sometimes `CodeBuild is not authorized to perform: sts:AssumeRole` error occurs...

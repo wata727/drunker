@@ -5,6 +5,7 @@ RSpec.describe Drunker::Config do
   let(:commands) { %w(rubocop --fail-level=F FILES) }
   let(:concurrency) { 1 }
   let(:compute_type) { "small" }
+  let(:timeout) { 60 }
   let(:debug) { false }
   let(:access_key) { nil }
   let(:secret_key) { nil }
@@ -15,6 +16,7 @@ RSpec.describe Drunker::Config do
                         commands: commands,
                         concurrency: concurrency,
                         compute_type: compute_type,
+                        timeout: timeout,
                         debug: debug,
                         access_key: access_key,
                         secret_key: secret_key,
@@ -29,6 +31,7 @@ RSpec.describe Drunker::Config do
       expect(config.commands).to eq commands
       expect(config.concurrency).to eq concurrency
       expect(config.compute_type).to eq "BUILD_GENERAL1_SMALL"
+      expect(config.timeout).to eq 60
       expect(config.instance_variable_get(:@debug)).to eq debug
       expect(config.instance_variable_get(:@credentials)).to be_nil
       expect(config.instance_variable_get(:@region)).to be_nil
@@ -74,6 +77,22 @@ RSpec.describe Drunker::Config do
       it "sets credentials" do
         expect(Aws::Credentials).to receive(:new).with(access_key, secret_key).and_return(credentials)
         expect(config.instance_variable_get(:@credentials)).to eq credentials
+      end
+    end
+
+    context "when specified invalid concurrency" do
+      let(:concurrency) { 0 }
+
+      it "raises InvalidConfigException" do
+        expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid concurrency. It should be bigger than 0. got: 0")
+      end
+    end
+
+    context "when specified invalid timeout" do
+      let(:timeout) { 1 }
+
+      it "raises InvalidConfigException" do
+        expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid timeout range. It should be 5 and 480. got: 1")
       end
     end
   end

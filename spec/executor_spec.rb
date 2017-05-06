@@ -11,6 +11,7 @@ RSpec.describe Drunker::Executor do
       image: image,
       commands: commands,
       concurrency: concurrency,
+      timeout: 60,
       compute_type: compute_type,
       aws_client_options: aws_opts,
     )
@@ -73,6 +74,7 @@ RSpec.describe Drunker::Executor do
           compute_type: "BUILD_GENERAL1_SMALL",
         },
         service_role: "drunker-service-role",
+        timeout_in_minutes: 60,
       }
     end
 

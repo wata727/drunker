@@ -4,12 +4,16 @@ module Drunker
     attr_reader :commands
     attr_reader :concurrency
     attr_reader :compute_type
+    attr_reader :timeout
 
-    def initialize(image:, commands:, concurrency:, compute_type:, access_key:, secret_key:, region:, profile_name:, debug:)
+    class InvalidConfigException < StandardError; end
+
+    def initialize(image:, commands:, concurrency:, compute_type:, timeout:, access_key:, secret_key:, region:, profile_name:, debug:)
       @image = image
       @commands = commands
       @concurrency = concurrency
       @compute_type = compute_name[compute_type]
+      @timeout = timeout
       @credentials = if profile_name
                       Aws::SharedCredentials.new(profile_name: profile_name)
                      elsif access_key && secret_key
@@ -17,6 +21,8 @@ module Drunker
                      end
       @region = region
       @debug = debug
+
+      validate!
     end
 
     def debug?
@@ -39,6 +45,17 @@ module Drunker
         "medium" => "BUILD_GENERAL1_MEDIUM",
         "large" => "BUILD_GENERAL1_LARGE"
       }
+    end
+
+    def validate!
+      message = case
+                when concurrency <= 0
+                  "Invalid concurrency. It should be bigger than 0. got: #{concurrency}"
+                when !timeout.between?(5, 480)
+                  "Invalid timeout range. It should be 5 and 480. got: #{timeout}"
+                end
+
+      raise InvalidConfigException.new(message) if message
     end
   end
 end

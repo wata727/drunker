@@ -41,6 +41,7 @@ RSpec.describe Drunker::CLI do
                                                     commands: %w(rubocop --fail-level=F FILES),
                                                     concurrency: 1,
                                                     compute_type: "small",
+                                                    timeout: 60,
                                                     debug: false,
                                                     access_key: nil,
                                                     secret_key: nil,
@@ -91,6 +92,7 @@ RSpec.describe Drunker::CLI do
                                                       commands: %w(rubocop --fail-level=F FILES),
                                                       concurrency: 10,
                                                       compute_type: "large",
+                                                      timeout: 100,
                                                       debug: true,
                                                       access_key: "ACCESS_KEY",
                                                       secret_key: "SECRET_KEY",
@@ -102,6 +104,7 @@ RSpec.describe Drunker::CLI do
           run
           --concurrency=10
           --compute_type=large
+          --timeout=100
           --debug
           --access-key=ACCESS_KEY
           --secret-key=SECRET_KEY
@@ -122,6 +125,27 @@ RSpec.describe Drunker::CLI do
       it "does not delete artifact" do
         expect(artifact).not_to receive(:delete)
         Drunker::CLI.start(%w(run --debug wata727/rubocop rubocop --fail-level=F FILES))
+      end
+    end
+
+    context "when InvalidConfigException is raised" do
+      before do
+        allow(Drunker::Config).to receive(:new).and_raise(Drunker::Config::InvalidConfigException.new("something wrong"))
+      end
+
+      it "does not create source" do
+        expect(Drunker::Source).not_to receive(:new)
+        Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
+      end
+
+      it "outputs exception message" do
+        expect(logger).to receive(:fatal).with("something wrong")
+        Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
+      end
+
+      it "exits with 1" do
+        expect_any_instance_of(Object).to receive(:exit).with(1)
+        Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
       end
     end
   end
