@@ -105,8 +105,7 @@ module Drunker
         stderr = artifact.stderr
         status_code = artifact.status_code
 
-        template = config.buildspec.read
-        ERB.new(template).result(binding)
+        ERB.new(config.buildspec).result(binding)
       end
 
       def interpolate_commands

@@ -33,7 +33,7 @@ module Drunker
       @compute_type = compute_name[ yaml["compute_type"] || compute_type ]
       @timeout =  yaml["timeout"] || timeout
       @environment_variables = codebuild_environments_format(yaml["environment_variables"] || env)
-      @buildspec = buildspec_path(yaml["buildspec"] || buildspec)
+      @buildspec = buildspec_body!(yaml["buildspec"] || buildspec)
       @credentials = aws_credentials(profile_name: yaml.dig("aws_credentials", "profile_name") || profile_name,
                                      access_key: yaml.dig("aws_credentials", "access_key") || access_key,
                                      secret_key: yaml.dig("aws_credentials", "secret_key") || secret_key)
@@ -70,12 +70,14 @@ module Drunker
       env.map { |k, v| { name: k, value: v } }
     end
 
-    def buildspec_path(buildspec)
+    def buildspec_body!(buildspec)
       if buildspec
-        Pathname.new(buildspec)
+        buildspec.is_a?(Hash) ? buildspec.to_yaml : Pathname.new(buildspec).read
       else
-        Pathname.new(__dir__ + "/executor/buildspec.yml.erb")
+        Pathname.new(__dir__ + "/executor/buildspec.yml.erb").read
       end
+    rescue Errno::ENOENT
+      raise InvalidConfigException.new("Invalid location of custom buildspec. got: #{buildspec}")
     end
 
     def aws_credentials(profile_name:, access_key:, secret_key:)
@@ -119,8 +121,8 @@ module Drunker
                   "Invalid compute type. It should be one of small, medium, large. got: #{yaml["compute_type"]}"
                 when yaml["timeout"] && !yaml["timeout"].is_a?(Numeric)
                   "Invalid timeout. It should be number (Not string). got: #{yaml["timeout"]}"
-                when yaml["buildspec"] && !yaml["buildspec"].is_a?(String)
-                  "Invalid buildspec. It should be string. got: #{yaml["buildspec"]}"
+                when yaml["buildspec"] && !(yaml["buildspec"].is_a?(String) || yaml["buildspec"].is_a?(Hash))
+                  "Invalid buildspec. It should be string or hash. got: #{yaml["buildspec"]}"
                 when yaml["environment_variables"] && !yaml["environment_variables"]&.values.all? { |v| v.is_a?(String) || v.is_a?(Numeric) }
                   "Invalid environment variables. It should be flatten hash. got: #{yaml["environment_variables"]}"
                 end
@@ -134,8 +136,6 @@ module Drunker
                   "Invalid concurrency. It should be bigger than 0. got: #{concurrency}"
                 when !timeout.between?(5, 480)
                   "Invalid timeout range. It should be 5 and 480. got: #{timeout}"
-                when !buildspec.file?
-                  "Invalid location of custom buildspec. got: #{buildspec.to_s}"
                 end
 
       raise InvalidConfigException.new(message) if message

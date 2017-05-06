@@ -40,7 +40,7 @@ RSpec.describe Drunker::Config do
       expect(config.concurrency).to eq concurrency
       expect(config.compute_type).to eq "BUILD_GENERAL1_SMALL"
       expect(config.timeout).to eq 60
-      expect(config.buildspec).to eq Pathname(__dir__ + "/../lib/drunker/executor/buildspec.yml.erb").cleanpath
+      expect(config.buildspec).to eq Pathname(__dir__ + "/../lib/drunker/executor/buildspec.yml.erb").read
       expect(config.environment_variables).to eq([])
       expect(config.instance_variable_get(:@debug)).to eq debug
       expect(config.instance_variable_get(:@credentials)).to be_nil
@@ -80,7 +80,7 @@ RSpec.describe Drunker::Config do
       let(:buildspec) { Pathname(__dir__ + "/fixtures/buildspec.yml.erb").to_s }
 
       it "sets custom buildspec" do
-        expect(config.buildspec).to eq Pathname(__dir__ + "/fixtures/buildspec.yml.erb").cleanpath
+        expect(config.buildspec).to eq Pathname(__dir__ + "/fixtures/buildspec.yml.erb").read
       end
     end
 
@@ -113,7 +113,8 @@ RSpec.describe Drunker::Config do
 
     context "when specified config file" do
       let(:config_file) { Pathname(__dir__ + "/fixtures/.drunker.yml") }
-      let(:buildspec_path) { double(file?: true) }
+      let(:buildspec_body) { double("buildspec body stub") }
+      let(:buildspec_path) { double(read: buildspec_body) }
 
       before do
         allow(Pathname).to receive(:new).with("buildspec.yml.erb").and_return(buildspec_path)
@@ -124,7 +125,7 @@ RSpec.describe Drunker::Config do
         expect(config.concurrency).to eq 10
         expect(config.compute_type).to eq "BUILD_GENERAL1_MEDIUM"
         expect(config.timeout).to eq 5
-        expect(config.buildspec).to eq buildspec_path
+        expect(config.buildspec).to eq buildspec_body
         expect(config.environment_variables).to eq([
                                                      { name: "RAILS_ENV", value: "test" },
                                                      { name: "SECRET_KEY_BASE", value: "super secret" }
@@ -145,7 +146,27 @@ RSpec.describe Drunker::Config do
         expect(config.concurrency).to eq concurrency
         expect(config.compute_type).to eq "BUILD_GENERAL1_SMALL"
         expect(config.timeout).to eq 60
-        expect(config.buildspec).to eq Pathname(__dir__ + "/../lib/drunker/executor/buildspec.yml.erb").cleanpath
+        expect(config.buildspec).to eq <<YAML
+---
+version: 0.1
+environment_variables:
+  plain_text:
+    RAILS_ENV: test
+    SECRET_KEY_BASE: super secret
+phases:
+  install:
+    commands:
+    - bundle install
+  build:
+    commands:
+    - <%= commands.join(" ") %> 1> <%= stdout %> 2> <%= stderr %>; echo $? > <%= status_code
+      %>
+artifacts:
+  files:
+  - "<%= stdout %>"
+  - "<%= stderr %>"
+  - "<%= status_code %>"
+YAML
         expect(config.environment_variables).to eq([])
         expect(config.instance_variable_get(:@credentials)).to eq credentials
         expect(config.instance_variable_get(:@region)).to be_nil
@@ -300,7 +321,7 @@ RSpec.describe Drunker::Config do
       end
 
       it "raises InvalidConfigException" do
-        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid buildspec. It should be string. got: 10")
+        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid buildspec. It should be string or hash. got: 10")
       end
     end
 

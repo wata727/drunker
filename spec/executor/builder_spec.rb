@@ -7,7 +7,7 @@ RSpec.describe Drunker::Executor::Builder do
   let(:config) do
     double(
       commands: commands,
-      buildspec: Pathname(__dir__ + "/../../lib/drunker/executor/buildspec.yml.erb"),
+      buildspec: Pathname(__dir__ + "/../../lib/drunker/executor/buildspec.yml.erb").read,
       aws_client_options: aws_opts
     )
   end
