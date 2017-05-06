@@ -5,15 +5,17 @@ module Drunker
     attr_reader :concurrency
     attr_reader :compute_type
     attr_reader :timeout
+    attr_reader :environment_variables
 
     class InvalidConfigException < StandardError; end
 
-    def initialize(image:, commands:, concurrency:, compute_type:, timeout:, access_key:, secret_key:, region:, profile_name:, debug:)
+    def initialize(image:, commands:, concurrency:, compute_type:, timeout:, env:, access_key:, secret_key:, region:, profile_name:, debug:)
       @image = image
       @commands = commands
       @concurrency = concurrency
       @compute_type = compute_name[compute_type]
       @timeout = timeout
+      @environment_variables = codebuild_environments_format(env)
       @credentials = if profile_name
                       Aws::SharedCredentials.new(profile_name: profile_name)
                      elsif access_key && secret_key
@@ -45,6 +47,10 @@ module Drunker
         "medium" => "BUILD_GENERAL1_MEDIUM",
         "large" => "BUILD_GENERAL1_LARGE"
       }
+    end
+
+    def codebuild_environments_format(env)
+      env.map { |k, v| { name: k, value: v } }
     end
 
     def validate!

@@ -42,6 +42,7 @@ RSpec.describe Drunker::CLI do
                                                     concurrency: 1,
                                                     compute_type: "small",
                                                     timeout: 60,
+                                                    env: {},
                                                     debug: false,
                                                     access_key: nil,
                                                     secret_key: nil,
@@ -93,6 +94,7 @@ RSpec.describe Drunker::CLI do
                                                       concurrency: 10,
                                                       compute_type: "large",
                                                       timeout: 100,
+                                                      env: { "RAILS_ENV" => "test", "SECRET_KEY_BASE" => "super_secret" },
                                                       debug: true,
                                                       access_key: "ACCESS_KEY",
                                                       secret_key: "SECRET_KEY",
@@ -105,6 +107,7 @@ RSpec.describe Drunker::CLI do
           --concurrency=10
           --compute_type=large
           --timeout=100
+          --env=RAILS_ENV:test SECRET_KEY_BASE:super_secret
           --debug
           --access-key=ACCESS_KEY
           --secret-key=SECRET_KEY

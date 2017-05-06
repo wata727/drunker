@@ -65,19 +65,21 @@ module Drunker
       retry_count = 0
 
       logger.info("Creating project...")
+      project_info = {
+        name: project_name,
+        source: source.to_h,
+        artifacts: artifact.to_h,
+        environment: {
+          type: "LINUX_CONTAINER",
+          image: config.image,
+          compute_type: config.compute_type,
+        },
+        service_role: iam.role.name,
+        timeout_in_minutes: config.timeout,
+      }
+      project_info[:environment][:environment_variables] = config.environment_variables unless config.environment_variables.empty?
       begin
-        client.create_project(
-          name: project_name,
-          source: source.to_h,
-          artifacts: artifact.to_h,
-          environment: {
-            type: "LINUX_CONTAINER",
-            image: config.image,
-            compute_type: config.compute_type,
-          },
-          service_role: iam.role.name,
-          timeout_in_minutes: config.timeout,
-        )
+        client.create_project(project_info)
         logger.info("Created project: #{project_name}")
       # Sometimes `CodeBuild is not authorized to perform: sts:AssumeRole` error occurs...
       # We can solve this problem by retrying after a while.

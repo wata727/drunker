@@ -5,6 +5,7 @@ RSpec.describe Drunker::Executor do
   let(:image) { "wata727/rubocop" }
   let(:concurrency) { 1 }
   let(:compute_type) { "BUILD_GENERAL1_SMALL" }
+  let(:environment_variables) { [] }
   let(:aws_opts) { double("AWS options stub") }
   let(:config) do
     double(
@@ -13,6 +14,7 @@ RSpec.describe Drunker::Executor do
       concurrency: concurrency,
       timeout: 60,
       compute_type: compute_type,
+      environment_variables: environment_variables,
       aws_client_options: aws_opts,
     )
   end
@@ -119,6 +121,32 @@ RSpec.describe Drunker::Executor do
     it "returns builders and artifact" do
       expect(artifact).to receive(:output)
       expect(executor.run).to eq [[builder1], artifact]
+    end
+
+    context "when environment variables are configured" do
+      let(:environment_variables) do
+        [
+          { name: "RAILS_ENV", value: "test" },
+          { name: "SECRET_KEY_BASE", value: "super secret" },
+        ]
+      end
+
+      it "creates project with project_info including environment variables" do
+        expect(client).to receive(:create_project).with({
+                                                           name: "drunker-executor-1483196400",
+                                                           source: { type: "Source" },
+                                                           artifacts: { type: "Artifact" },
+                                                           environment: {
+                                                             type: "LINUX_CONTAINER",
+                                                             image: "wata727/rubocop",
+                                                             compute_type: "BUILD_GENERAL1_SMALL",
+                                                             environment_variables: environment_variables
+                                                           },
+                                                           service_role: "drunker-service-role",
+                                                           timeout_in_minutes: 60,
+                                                        })
+        executor.run
+      end
     end
 
     context "when enabled debug mode" do

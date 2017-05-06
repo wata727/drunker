@@ -6,6 +6,7 @@ RSpec.describe Drunker::Config do
   let(:concurrency) { 1 }
   let(:compute_type) { "small" }
   let(:timeout) { 60 }
+  let(:env) { {} }
   let(:debug) { false }
   let(:access_key) { nil }
   let(:secret_key) { nil }
@@ -17,6 +18,7 @@ RSpec.describe Drunker::Config do
                         concurrency: concurrency,
                         compute_type: compute_type,
                         timeout: timeout,
+                        env: env,
                         debug: debug,
                         access_key: access_key,
                         secret_key: secret_key,
@@ -32,6 +34,7 @@ RSpec.describe Drunker::Config do
       expect(config.concurrency).to eq concurrency
       expect(config.compute_type).to eq "BUILD_GENERAL1_SMALL"
       expect(config.timeout).to eq 60
+      expect(config.environment_variables).to eq([])
       expect(config.instance_variable_get(:@debug)).to eq debug
       expect(config.instance_variable_get(:@credentials)).to be_nil
       expect(config.instance_variable_get(:@region)).to be_nil
@@ -50,6 +53,19 @@ RSpec.describe Drunker::Config do
 
       it "sets large compute name" do
         expect(config.compute_type).to eq "BUILD_GENERAL1_LARGE"
+      end
+    end
+
+    context "when specified environment variables" do
+      let(:env) do
+        { "RAILS_ENV" => "test", "SECRET_KEY_BASE" => "super_secret" }
+      end
+
+      it "sets environment variables" do
+        expect(config.environment_variables).to eq([
+                                                      { name: "RAILS_ENV", value: "test" },
+                                                      { name: "SECRET_KEY_BASE", value: "super_secret" }
+                                                   ])
       end
     end
 
