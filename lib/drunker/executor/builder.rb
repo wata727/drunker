@@ -105,7 +105,7 @@ module Drunker
         stderr = artifact.stderr
         status_code = artifact.status_code
 
-        template = Pathname(__dir__ + "/buildspec.yml.erb").read
+        template = config.buildspec.read
         ERB.new(template).result(binding)
       end
 

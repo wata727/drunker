@@ -5,6 +5,7 @@ module Drunker
     method_option :compute_type, :type => :string, :default => "small", :enum => %w(small medium large), :desc => "Container compute type"
     method_option :timeout, :type => :numeric, :default => 60, :desc => "Build timeout in minutes, should be between 5 and 480"
     method_option :env, :type => :hash, :default => {}, :desc => "Environment variables in containers"
+    method_option :buildspec, :type => :string, desc: "Location of custom buildspec"
     method_option :loglevel, :type => :string, :default => "info", :enum => %w(debug info warn error fatal), :desc => "Output log level"
     method_option :debug, :type => :boolean, :default => false, :desc => "Enable debug mode. This mode does not delete the AWS resources created by Drunker"
     method_option :access_key, :type => :string, :desc => "AWS access key token used by Drunker"
@@ -23,6 +24,7 @@ module Drunker
                                    compute_type: options[:compute_type],
                                    timeout: options[:timeout],
                                    env: options[:env],
+                                   buildspec: options[:buildspec],
                                    debug: options[:debug],
                                    access_key: options[:access_key],
                                    secret_key: options[:secret_key],

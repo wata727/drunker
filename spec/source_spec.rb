@@ -44,12 +44,13 @@ RSpec.describe Drunker::Source do
       let(:path) { Pathname(__dir__) + "fixtures" }
 
       it "sets target files" do
-        expect(source.target_files).to contain_exactly("test.rb", "test2.rb", "subdir/test3.rb")
+        expect(source.target_files).to contain_exactly("buildspec.yml.erb", "test.rb", "test2.rb", "subdir/test3.rb")
       end
 
       it "archives and deletes source" do
         expect(Zip::File).to receive(:open).with((Pathname(__dir__) + "fixtures/drunker_source_1483196400.zip").to_s, Zip::File::CREATE).and_yield(zip)
         expect(zip).to receive(:add).with(Pathname(".gitignore"), (Pathname(__dir__) + "fixtures/.gitignore").to_s)
+        expect(zip).to receive(:add).with(Pathname("buildspec.yml.erb"), (Pathname(__dir__) + "fixtures/buildspec.yml.erb").to_s)
         expect(zip).to receive(:add).with(Pathname("test.rb"), (Pathname(__dir__) + "fixtures/test.rb").to_s)
         expect(zip).to receive(:add).with(Pathname("test2.rb"), (Pathname(__dir__) + "fixtures/test2.rb").to_s)
         expect(zip).to receive(:add).with(Pathname("subdir/.rspec"), (Pathname(__dir__) + "fixtures/subdir/.rspec").to_s)

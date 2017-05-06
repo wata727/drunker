@@ -7,6 +7,7 @@ RSpec.describe Drunker::Config do
   let(:compute_type) { "small" }
   let(:timeout) { 60 }
   let(:env) { {} }
+  let(:buildspec) { nil }
   let(:debug) { false }
   let(:access_key) { nil }
   let(:secret_key) { nil }
@@ -19,6 +20,7 @@ RSpec.describe Drunker::Config do
                         compute_type: compute_type,
                         timeout: timeout,
                         env: env,
+                        buildspec: buildspec,
                         debug: debug,
                         access_key: access_key,
                         secret_key: secret_key,
@@ -34,6 +36,7 @@ RSpec.describe Drunker::Config do
       expect(config.concurrency).to eq concurrency
       expect(config.compute_type).to eq "BUILD_GENERAL1_SMALL"
       expect(config.timeout).to eq 60
+      expect(config.buildspec).to eq Pathname(__dir__ + "/../lib/drunker/executor/buildspec.yml.erb").cleanpath
       expect(config.environment_variables).to eq([])
       expect(config.instance_variable_get(:@debug)).to eq debug
       expect(config.instance_variable_get(:@credentials)).to be_nil
@@ -66,6 +69,14 @@ RSpec.describe Drunker::Config do
                                                       { name: "RAILS_ENV", value: "test" },
                                                       { name: "SECRET_KEY_BASE", value: "super_secret" }
                                                    ])
+      end
+    end
+
+    context "when specified custom buildspec" do
+      let(:buildspec) { Pathname(__dir__ + "/fixtures/buildspec.yml.erb").to_s }
+
+      it "sets custom buildspec" do
+        expect(config.buildspec).to eq Pathname(__dir__ + "/fixtures/buildspec.yml.erb").cleanpath
       end
     end
 
@@ -109,6 +120,14 @@ RSpec.describe Drunker::Config do
 
       it "raises InvalidConfigException" do
         expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid timeout range. It should be 5 and 480. got: 1")
+      end
+    end
+
+    context "when specified invalid custom buildspec" do
+      let(:buildspec) { Pathname("buildspec.yml.erb").to_s }
+
+      it "sets custom buildspec" do
+        expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid location of custom buildspec. got: buildspec.yml.erb")
       end
     end
   end
