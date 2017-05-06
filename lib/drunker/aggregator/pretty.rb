@@ -6,7 +6,8 @@ module Drunker
           builder = builders.find { |builder| builder.build_id == build }
 
           puts
-          puts "-----------------------------------Build ID: #{build}-----------------------------------"
+          puts "-------------------------------------------------------------------------------------------"
+          puts "BUILD_ID: #{build}"
           puts "RESULT: #{builder.success? ? "SUCCESS" : "FAILED"}"
           puts "STDOUT: #{body[:stdout]}" unless body[:stdout] == Drunker::Artifact::NOT_FOUND
           puts "STDERR: #{body[:stderr]}" unless body[:stderr] == Drunker::Artifact::NOT_FOUND
