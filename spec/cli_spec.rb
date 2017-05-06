@@ -40,6 +40,7 @@ RSpec.describe Drunker::CLI do
       expect(Drunker::Config).to receive(:new).with(image: "wata727/rubocop",
                                                     commands: %w(rubocop --fail-level=F FILES),
                                                     concurrency: 1,
+                                                    compute_type: "small",
                                                     debug: false,
                                                     access_key: nil,
                                                     secret_key: nil,
@@ -89,6 +90,7 @@ RSpec.describe Drunker::CLI do
         expect(Drunker::Config).to receive(:new).with(image: "wata727/rubocop",
                                                       commands: %w(rubocop --fail-level=F FILES),
                                                       concurrency: 10,
+                                                      compute_type: "large",
                                                       debug: true,
                                                       access_key: "ACCESS_KEY",
                                                       secret_key: "SECRET_KEY",
@@ -96,7 +98,20 @@ RSpec.describe Drunker::CLI do
                                                       profile_name: "PROFILE_NAME")
                                        .and_return(config)
         expect(Drunker::Executor).to receive(:new).with(source: source, config: config, logger: logger).and_return(executor)
-        Drunker::CLI.start(%w(run --concurrency=10 --debug --access-key=ACCESS_KEY --secret-key=SECRET_KEY --region=us-east-1 --profile-name=PROFILE_NAME wata727/rubocop rubocop --fail-level=F FILES))
+        Drunker::CLI.start(%w(
+          run
+          --concurrency=10
+          --compute_type=large
+          --debug
+          --access-key=ACCESS_KEY
+          --secret-key=SECRET_KEY
+          --region=us-east-1
+          --profile-name=PROFILE_NAME
+          wata727/rubocop
+          rubocop
+          --fail-level=F
+          FILES
+        ))
       end
 
       it "does not delete source" do

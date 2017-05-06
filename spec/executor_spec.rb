@@ -4,12 +4,14 @@ RSpec.describe Drunker::Executor do
   let(:commands) { %w(rubocop --fail-level=F FILES) }
   let(:image) { "wata727/rubocop" }
   let(:concurrency) { 1 }
+  let(:compute_type) { "BUILD_GENERAL1_SMALL" }
   let(:aws_opts) { double("AWS options stub") }
   let(:config) do
     double(
       image: image,
       commands: commands,
       concurrency: concurrency,
+      compute_type: compute_type,
       aws_client_options: aws_opts,
     )
   end

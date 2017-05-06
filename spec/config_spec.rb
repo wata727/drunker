@@ -4,6 +4,7 @@ RSpec.describe Drunker::Config do
   let(:image) { "wata727/rubocop" }
   let(:commands) { %w(rubocop --fail-level=F FILES) }
   let(:concurrency) { 1 }
+  let(:compute_type) { "small" }
   let(:debug) { false }
   let(:access_key) { nil }
   let(:secret_key) { nil }
@@ -13,6 +14,7 @@ RSpec.describe Drunker::Config do
     Drunker::Config.new(image: image,
                         commands: commands,
                         concurrency: concurrency,
+                        compute_type: compute_type,
                         debug: debug,
                         access_key: access_key,
                         secret_key: secret_key,
@@ -26,12 +28,29 @@ RSpec.describe Drunker::Config do
       expect(config.image).to eq image
       expect(config.commands).to eq commands
       expect(config.concurrency).to eq concurrency
+      expect(config.compute_type).to eq "BUILD_GENERAL1_SMALL"
       expect(config.instance_variable_get(:@debug)).to eq debug
       expect(config.instance_variable_get(:@credentials)).to be_nil
       expect(config.instance_variable_get(:@region)).to be_nil
     end
 
-    context "when specifed region" do
+    context "when specified medium as compute_type" do
+      let(:compute_type) { "medium" }
+
+      it "sets medium compute name" do
+        expect(config.compute_type).to eq "BUILD_GENERAL1_MEDIUM"
+      end
+    end
+
+    context "when specified large as compute_type" do
+      let(:compute_type) { "large" }
+
+      it "sets large compute name" do
+        expect(config.compute_type).to eq "BUILD_GENERAL1_LARGE"
+      end
+    end
+
+    context "when specified region" do
       let(:region) { "us-east-1" }
 
       it "sets region" do
@@ -39,7 +58,7 @@ RSpec.describe Drunker::Config do
       end
     end
 
-    context "when specifed profile_name" do
+    context "when specified profile_name" do
       let(:profile_name) { "PROFILE_NAME" }
 
       it "sets shared credentials" do

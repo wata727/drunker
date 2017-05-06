@@ -73,7 +73,7 @@ module Drunker
           environment: {
             type: "LINUX_CONTAINER",
             image: config.image,
-            compute_type: "BUILD_GENERAL1_SMALL",
+            compute_type: config.compute_type,
           },
           service_role: iam.role.name
         )
