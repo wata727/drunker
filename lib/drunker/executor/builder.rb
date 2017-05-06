@@ -100,17 +100,13 @@ module Drunker
       end
 
       def buildspec
-        {
-          "version" => 0.1,
-          "phases" => {
-            "build" => {
-              "commands" => [interpolate_commands.join(" ") + " 1> #{artifact.stdout} 2> #{artifact.stderr}; echo $? > #{artifact.status_code}"]
-            }
-          },
-          "artifacts" => {
-            "files" => [artifact.stdout, artifact.stderr, artifact.status_code]
-          }
-        }.to_yaml
+        commands = interpolate_commands
+        stdout = artifact.stdout
+        stderr = artifact.stderr
+        status_code = artifact.status_code
+
+        template = Pathname(__dir__ + "/buildspec.yml.erb").read
+        ERB.new(template).result(binding)
       end
 
       def interpolate_commands

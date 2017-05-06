@@ -1,0 +1,11 @@
+---
+version: 0.1
+phases:
+  build:
+    commands:
+      - <%= commands.join(" ") %> 1> <%= stdout %> 2> <%= stderr %>; echo $? > <%= status_code %>
+artifacts:
+  files:
+    - <%= stdout %>
+    - <%= stderr %>
+    - <%= status_code %>

@@ -41,17 +41,19 @@ RSpec.describe Drunker::Executor::Builder do
     end
 
     it "starts new build" do
-      yaml = {
-        "version" => 0.1,
-          "phases" => {
-            "build" => {
-            "commands" => ["rubocop --fail-level=F 1> stdout.txt 2> stderr.txt; echo $? > status_code.txt"]
-          }
-        },
-        "artifacts" => {
-          "files" => %w(stdout.txt stderr.txt status_code.txt)
-        }
-      }.to_yaml
+      yaml =<<YAML
+---
+version: 0.1
+phases:
+  build:
+    commands:
+      - rubocop --fail-level=F 1> stdout.txt 2> stderr.txt; echo $? > status_code.txt
+artifacts:
+  files:
+    - stdout.txt
+    - stderr.txt
+    - status_code.txt
+YAML
       expect(client).to receive(:start_build).with(project_name: project_name, buildspec_override: yaml).and_return(response)
 
       builder.run
@@ -71,17 +73,19 @@ RSpec.describe Drunker::Executor::Builder do
       let(:commands) { %w(rubocop --fail-level=F FILES) }
 
       it "starts new build with interpolated buildspec" do
-        yaml = {
-          "version" => 0.1,
-          "phases" => {
-            "build" => {
-              "commands" => ["rubocop --fail-level=F lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb 1> stdout.txt 2> stderr.txt; echo $? > status_code.txt"]
-            }
-          },
-          "artifacts" => {
-            "files" => %w(stdout.txt stderr.txt status_code.txt)
-          }
-        }.to_yaml
+        yaml =<<YAML
+---
+version: 0.1
+phases:
+  build:
+    commands:
+      - rubocop --fail-level=F lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb 1> stdout.txt 2> stderr.txt; echo $? > status_code.txt
+artifacts:
+  files:
+    - stdout.txt
+    - stderr.txt
+    - status_code.txt
+YAML
         expect(client).to receive(:start_build).with(project_name: project_name, buildspec_override: yaml).and_return(response)
 
         builder.run
