@@ -39,6 +39,7 @@ RSpec.describe Drunker::CLI do
     it "creates new executor" do
       expect(Drunker::Config).to receive(:new).with(image: "wata727/rubocop",
                                                     commands: %w(rubocop --fail-level=F FILES),
+                                                    config: ".drunker.yml",
                                                     concurrency: 1,
                                                     compute_type: "small",
                                                     timeout: 60,
@@ -48,7 +49,8 @@ RSpec.describe Drunker::CLI do
                                                     access_key: nil,
                                                     secret_key: nil,
                                                     region: nil,
-                                                    profile_name: nil)
+                                                    profile_name: nil,
+                                                    logger: logger)
                                               .and_return(config)
       expect(Drunker::Executor).to receive(:new).with(source: source, config: config, logger: logger).and_return(executor)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
@@ -92,6 +94,7 @@ RSpec.describe Drunker::CLI do
         expect(logger).to receive(:level=).with(Logger::DEBUG)
         expect(Drunker::Config).to receive(:new).with(image: "wata727/rubocop",
                                                       commands: %w(rubocop --fail-level=F FILES),
+                                                      config: ".custom_drunker.yml",
                                                       concurrency: 10,
                                                       compute_type: "large",
                                                       timeout: 100,
@@ -101,11 +104,13 @@ RSpec.describe Drunker::CLI do
                                                       access_key: "ACCESS_KEY",
                                                       secret_key: "SECRET_KEY",
                                                       region: "us-east-1",
-                                                      profile_name: "PROFILE_NAME")
+                                                      profile_name: "PROFILE_NAME",
+                                                      logger: logger)
                                        .and_return(config)
         expect(Drunker::Executor).to receive(:new).with(source: source, config: config, logger: logger).and_return(executor)
         Drunker::CLI.start(%w(
           run
+          --config=.custom_drunker.yml
           --concurrency=10
           --compute_type=large
           --timeout=100

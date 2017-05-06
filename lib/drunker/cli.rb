@@ -1,6 +1,7 @@
 module Drunker
   class CLI < Thor
     desc "run [IMAGE] [COMMAND]", "Run a command on CodeBuild"
+    method_option :config, :type => :string, :default => ".drunker.yml", :desc => "Location of config file"
     method_option :concurrency, :type => :numeric, :default => 1, :desc => "Build concurrency"
     method_option :compute_type, :type => :string, :default => "small", :enum => %w(small medium large), :desc => "Container compute type"
     method_option :timeout, :type => :numeric, :default => 60, :desc => "Build timeout in minutes, should be between 5 and 480"
@@ -20,6 +21,7 @@ module Drunker
       end
       config = Drunker::Config.new(image: image,
                                    commands: commands,
+                                   config: options[:config],
                                    concurrency: options[:concurrency],
                                    compute_type: options[:compute_type],
                                    timeout: options[:timeout],
@@ -29,11 +31,11 @@ module Drunker
                                    access_key: options[:access_key],
                                    secret_key: options[:secret_key],
                                    region: options[:region],
-                                   profile_name: options[:profile_name])
+                                   profile_name: options[:profile_name],
+                                   logger: logger)
 
       logger.info("Creating source....")
       source = Drunker::Source.new(Pathname.pwd, config: config, logger: logger)
-
 
       logger.info("Starting executor...")
       builders, artifact = Drunker::Executor.new(source: source, config: config, logger: logger).run

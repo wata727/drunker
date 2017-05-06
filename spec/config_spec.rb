@@ -3,6 +3,7 @@ require "spec_helper"
 RSpec.describe Drunker::Config do
   let(:image) { "wata727/rubocop" }
   let(:commands) { %w(rubocop --fail-level=F FILES) }
+  let(:config_file) { ".drunker.yml" }
   let(:concurrency) { 1 }
   let(:compute_type) { "small" }
   let(:timeout) { 60 }
@@ -13,9 +14,11 @@ RSpec.describe Drunker::Config do
   let(:secret_key) { nil }
   let(:region) { nil }
   let(:profile_name) { nil }
+  let(:logger) { Logger.new("/dev/null") }
   let(:config) do
     Drunker::Config.new(image: image,
                         commands: commands,
+                        config: config_file,
                         concurrency: concurrency,
                         compute_type: compute_type,
                         timeout: timeout,
@@ -25,7 +28,8 @@ RSpec.describe Drunker::Config do
                         access_key: access_key,
                         secret_key: secret_key,
                         region: region,
-                        profile_name: profile_name)
+                        profile_name: profile_name,
+                        logger: logger)
   end
   let(:credentials) { double("credentials stub") }
 
@@ -107,6 +111,47 @@ RSpec.describe Drunker::Config do
       end
     end
 
+    context "when specified config file" do
+      let(:config_file) { Pathname(__dir__ + "/fixtures/.drunker.yml") }
+      let(:buildspec_path) { double(file?: true) }
+
+      before do
+        allow(Pathname).to receive(:new).with("buildspec.yml.erb").and_return(buildspec_path)
+        allow(Aws::SharedCredentials).to receive(:new).with(profile_name: "PROFILE_NAME").and_return(credentials)
+      end
+
+      it "sets atrributes from config file" do
+        expect(config.concurrency).to eq 10
+        expect(config.compute_type).to eq "BUILD_GENERAL1_MEDIUM"
+        expect(config.timeout).to eq 5
+        expect(config.buildspec).to eq buildspec_path
+        expect(config.environment_variables).to eq([
+                                                     { name: "RAILS_ENV", value: "test" },
+                                                     { name: "SECRET_KEY_BASE", value: "super secret" }
+                                                   ])
+        expect(config.instance_variable_get(:@credentials)).to eq credentials
+        expect(config.instance_variable_get(:@region)).to eq "us-east-1"
+      end
+    end
+
+    context "when specified small config file" do
+      let(:config_file) { Pathname(__dir__ + "/fixtures/.custom_drunker.yml") }
+
+      before do
+        expect(Aws::Credentials).to receive(:new).with("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY").and_return(credentials)
+      end
+
+      it "sets atrributes from config file and arguments" do
+        expect(config.concurrency).to eq concurrency
+        expect(config.compute_type).to eq "BUILD_GENERAL1_SMALL"
+        expect(config.timeout).to eq 60
+        expect(config.buildspec).to eq Pathname(__dir__ + "/../lib/drunker/executor/buildspec.yml.erb").cleanpath
+        expect(config.environment_variables).to eq([])
+        expect(config.instance_variable_get(:@credentials)).to eq credentials
+        expect(config.instance_variable_get(:@region)).to be_nil
+      end
+    end
+
     context "when specified invalid concurrency" do
       let(:concurrency) { 0 }
 
@@ -126,8 +171,24 @@ RSpec.describe Drunker::Config do
     context "when specified invalid custom buildspec" do
       let(:buildspec) { Pathname("buildspec.yml.erb").to_s }
 
-      it "sets custom buildspec" do
+      it "raises InvalidConfigException" do
         expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid location of custom buildspec. got: buildspec.yml.erb")
+      end
+    end
+
+    context "when specified invalid config file path" do
+      let(:config_file) { ".invalid_drunker.yml" }
+
+      it "raises InvalidConfigException" do
+        expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Config file not found. got: .invalid_drunker.yml")
+      end
+    end
+
+    context "when specified invalid syntax config file" do
+      let(:config_file) { Pathname(__dir__ + "/fixtures/.invalid_drunker.yml") }
+
+      it "raises InvalidConfigException" do
+        expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid config file. message: (#{config_file.to_s}): did not find expected node content while parsing a flow node at line 2 column 1")
       end
     end
   end
@@ -176,6 +237,87 @@ RSpec.describe Drunker::Config do
 
       it "returns hash including crdentials and region" do
         expect(config.aws_client_options).to eq(credentials: credentials, region: "us-east-1")
+      end
+    end
+  end
+
+  describe "#validate_yaml!" do
+    let(:yaml) { {} }
+
+    context "when specified invalid key" do
+      let(:yaml) do
+        { "invalid_key" => "invalid!" }
+      end
+
+      it "raises InvalidConfigException" do
+        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid config file keys: invalid_key")
+      end
+    end
+
+    context "when specified invalid key in aws_credentials" do
+      let(:yaml) do
+        { "aws_credentials" => { "invalid_key" => "invalid!" } }
+      end
+
+      it "raises InvalidConfigException" do
+        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid config file keys: invalid_key")
+      end
+    end
+
+    context "when specified invalid concurrency" do
+      let(:yaml) do
+        { "concurrency" => "invalid" }
+      end
+
+      it "raises InvalidConfigException" do
+        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid concurrency. It should be number (Not string). got: invalid")
+      end
+    end
+
+    context "when specified invalid compute_type" do
+      let(:yaml) do
+        { "compute_type" => "big" }
+      end
+
+      it "raises InvalidConfigException" do
+        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid compute type. It should be one of small, medium, large. got: big")
+      end
+    end
+
+    context "when specified invalid timeout" do
+      let(:yaml) do
+        { "timeout" => { "minutes" => 10 } }
+      end
+
+      it "raises InvalidConfigException" do
+        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid timeout. It should be number (Not string). got: {\"minutes\"=>10}")
+      end
+    end
+
+    context "when specified invalid buildspec" do
+      let(:yaml) do
+        { "buildspec" => 10 }
+      end
+
+      it "raises InvalidConfigException" do
+        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid buildspec. It should be string. got: 10")
+      end
+    end
+
+    context "when specified invalid environment_variables" do
+      let(:yaml) do
+        {
+          "environment_variables" => {
+              "RAILS_ENV" => "test",
+              "SECRET_KEY_BASE" => {
+                "value" => "super secret"
+              }
+          }
+        }
+      end
+
+      it "raises InvalidConfigException" do
+        expect { config.send(:validate_yaml!, yaml) }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid environment variables. It should be flatten hash. got: {\"RAILS_ENV\"=>\"test\", \"SECRET_KEY_BASE\"=>{\"value\"=>\"super secret\"}}")
       end
     end
   end

@@ -5,6 +5,7 @@ require "aws-sdk"
 require "json"
 require "logger"
 require "erb"
+require "yaml"
 
 require "drunker/version"
 require "drunker/cli"
