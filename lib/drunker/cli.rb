@@ -53,7 +53,7 @@ module Drunker
 
       exit aggregator.exit_status
     rescue Drunker::Config::InvalidConfigException => exn
-      logger.fatal(exn.message)
+      logger.error(exn.message)
       exit 1
     end
     map "run" => "_run" # "run" is a Thor reserved word and cannot be defined as command

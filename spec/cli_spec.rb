@@ -150,7 +150,7 @@ RSpec.describe Drunker::CLI do
       end
 
       it "outputs exception message" do
-        expect(logger).to receive(:fatal).with("something wrong")
+        expect(logger).to receive(:error).with("something wrong")
         Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
       end
 
