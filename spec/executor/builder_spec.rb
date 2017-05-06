@@ -94,8 +94,8 @@ RSpec.describe Drunker::Executor::Builder do
       expect(builder.retriable?).to be true
     end
 
-    context "when already retried" do
-      before { builder.instance_variable_set(:@retry_count, 1) }
+    context "when already retried at 3 times" do
+      before { builder.instance_variable_set(:@retry_count, 3) }
       it "returns false" do
         expect(builder.retriable?).to be false
       end
@@ -105,7 +105,7 @@ RSpec.describe Drunker::Executor::Builder do
   describe "#retry" do
     it "runs" do
       expect(builder).to receive(:run)
-      builder.retry
+      expect{ builder.retry }.to change { builder.instance_variable_get(:@retry_count) }.by(1)
     end
   end
 

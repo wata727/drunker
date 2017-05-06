@@ -7,7 +7,7 @@ module Drunker
       TIMED_OUT   = "TIMED_OUT"
       STOPPED     = "STOPPED"
 
-      RETRY_LIMIT = 1
+      RETRY_LIMIT = 3
       PHASE_ACCESS_DENIED = "ACCESS_DENIED"
 
       attr_reader :build_id
@@ -36,6 +36,7 @@ module Drunker
 
       def retry
         logger.info("Retrying build: #{build_id}")
+        @retry_count += 1
         run
       end
 
