@@ -12,7 +12,7 @@ module Drunker
     method_option :access_key, :type => :string, :desc => "AWS access key token used by Drunker"
     method_option :secret_key, :type => :string, :desc => "AWS secret key token used by Drunker"
     method_option :region, :type => :string, :desc => "AWS region in which resources is created by Drunker"
-    method_option :profile_name, :type => :string, :desc => "AWS shared profile name used by Drunker"
+    method_option :profile_name, :type => :string, :desc => "AWS shared credentials profile name used by Drunker"
     def _run(image, *commands)
       loglevel = options[:debug] ? "DEBUG" : options[:loglevel].upcase
       logger = Logger.new(STDERR).tap do |logger|
