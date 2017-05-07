@@ -9,6 +9,7 @@ RSpec.describe Drunker::Config do
   let(:timeout) { 60 }
   let(:env) { {} }
   let(:buildspec) { nil }
+  let(:file_pattern) { "**/*" }
   let(:debug) { false }
   let(:access_key) { nil }
   let(:secret_key) { nil }
@@ -24,6 +25,7 @@ RSpec.describe Drunker::Config do
                         timeout: timeout,
                         env: env,
                         buildspec: buildspec,
+                        file_pattern: file_pattern,
                         debug: debug,
                         access_key: access_key,
                         secret_key: secret_key,
@@ -41,6 +43,7 @@ RSpec.describe Drunker::Config do
       expect(config.compute_type).to eq "BUILD_GENERAL1_SMALL"
       expect(config.timeout).to eq 60
       expect(config.buildspec).to eq Pathname(__dir__ + "/../lib/drunker/executor/buildspec.yml.erb").read
+      expect(config.file_pattern).to eq file_pattern
       expect(config.environment_variables).to eq([])
       expect(config.instance_variable_get(:@debug)).to eq debug
       expect(config.instance_variable_get(:@credentials)).to be_nil
@@ -126,6 +129,7 @@ RSpec.describe Drunker::Config do
         expect(config.compute_type).to eq "BUILD_GENERAL1_MEDIUM"
         expect(config.timeout).to eq 5
         expect(config.buildspec).to eq buildspec_body
+        expect(config.file_pattern).to eq "spec/**/*_spec.rb"
         expect(config.environment_variables).to eq([
                                                      { name: "RAILS_ENV", value: "test" },
                                                      { name: "SECRET_KEY_BASE", value: "super secret" }
@@ -167,6 +171,7 @@ artifacts:
   - "<%= stderr %>"
   - "<%= status_code %>"
 YAML
+        expect(config.file_pattern).to eq file_pattern
         expect(config.environment_variables).to eq([])
         expect(config.instance_variable_get(:@credentials)).to eq credentials
         expect(config.instance_variable_get(:@region)).to be_nil

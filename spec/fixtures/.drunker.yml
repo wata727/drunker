@@ -5,6 +5,7 @@ environment_variables:
   RAILS_ENV: test
   SECRET_KEY_BASE: super secret
 buildspec: buildspec.yml.erb
+file_pattern: spec/**/*_spec.rb
 aws_credentials:
   profile_name: PROFILE_NAME
   region: us-east-1

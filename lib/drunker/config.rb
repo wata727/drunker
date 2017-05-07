@@ -7,6 +7,7 @@ module Drunker
     attr_reader :timeout
     attr_reader :environment_variables
     attr_reader :buildspec
+    attr_reader :file_pattern
 
     class InvalidConfigException < StandardError; end
 
@@ -18,6 +19,7 @@ module Drunker
                    timeout:,
                    env:,
                    buildspec:,
+                   file_pattern:,
                    access_key:,
                    secret_key:,
                    region:,
@@ -34,6 +36,7 @@ module Drunker
       @timeout =  yaml["timeout"] || timeout
       @environment_variables = codebuild_environments_format(yaml["environment_variables"] || env)
       @buildspec = buildspec_body!(yaml["buildspec"] || buildspec)
+      @file_pattern = yaml["file_pattern"] || file_pattern
       @credentials = aws_credentials(profile_name: yaml.dig("aws_credentials", "profile_name") || profile_name,
                                      access_key: yaml.dig("aws_credentials", "access_key") || access_key,
                                      secret_key: yaml.dig("aws_credentials", "secret_key") || secret_key)
@@ -104,7 +107,7 @@ module Drunker
     end
 
     def validate_yaml!(yaml)
-      valid_toplevel_keys = %w(concurrency compute_type timeout environment_variables buildspec aws_credentials)
+      valid_toplevel_keys = %w(concurrency compute_type timeout file_pattern environment_variables buildspec aws_credentials)
       invalid_keys = yaml.keys.reject { |k| valid_toplevel_keys.include?(k) }
       raise InvalidConfigException.new("Invalid config file keys: #{invalid_keys.join(",")}") unless invalid_keys.empty?
 
@@ -125,6 +128,8 @@ module Drunker
                   "Invalid buildspec. It should be string or hash. got: #{yaml["buildspec"]}"
                 when yaml["environment_variables"] && !yaml["environment_variables"]&.values.all? { |v| v.is_a?(String) || v.is_a?(Numeric) }
                   "Invalid environment variables. It should be flatten hash. got: #{yaml["environment_variables"]}"
+                when yaml["file_pattern"] && !yaml["file_pattern"].is_a?(String)
+                  "Invalid file pattern. It should be string. got: #{yaml["file_pattern"]}"
                 end
 
       raise InvalidConfigException.new(message) if message

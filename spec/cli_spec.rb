@@ -45,6 +45,7 @@ RSpec.describe Drunker::CLI do
                                                     timeout: 60,
                                                     env: {},
                                                     buildspec: nil,
+                                                    file_pattern: "**/*",
                                                     debug: false,
                                                     access_key: nil,
                                                     secret_key: nil,
@@ -100,6 +101,7 @@ RSpec.describe Drunker::CLI do
                                                       timeout: 100,
                                                       env: { "RAILS_ENV" => "test", "SECRET_KEY_BASE" => "super_secret" },
                                                       buildspec: "custom_buildspec.yml.erb",
+                                                      file_pattern: "spec/**/*_spec.rb",
                                                       debug: true,
                                                       access_key: "ACCESS_KEY",
                                                       secret_key: "SECRET_KEY",
@@ -116,6 +118,7 @@ RSpec.describe Drunker::CLI do
           --timeout=100
           --env=RAILS_ENV:test SECRET_KEY_BASE:super_secret
           --buildspec=custom_buildspec.yml.erb
+          --file-pattern=spec/**/*_spec.rb
           --debug
           --access-key=ACCESS_KEY
           --secret-key=SECRET_KEY

@@ -3,7 +3,8 @@ require "spec_helper"
 RSpec.describe Drunker::Source do
   let(:path) { Pathname.pwd }
   let(:aws_opts) { double("AWS options stub") }
-  let(:config) { double(aws_client_options: aws_opts) }
+  let(:file_pattern) { "**/*" }
+  let(:config) { double(aws_client_options: aws_opts, file_pattern: file_pattern) }
   let(:logger) { Logger.new("/dev/null") }
   let(:source) { Drunker::Source.new(path, config: config, logger: logger) }
   let(:client) { double("s3 client stub") }
@@ -60,6 +61,14 @@ RSpec.describe Drunker::Source do
         expect(zip).to receive(:add).with(Pathname("subdir/test3.rb"), (Pathname(__dir__) + "fixtures/subdir/test3.rb").to_s)
         expect_any_instance_of(Pathname).to receive(:unlink)
         source
+      end
+
+      context "when specified custom file pattern" do
+        let(:file_pattern) { "**/*.rb" }
+
+        it "sets target files" do
+          expect(source.target_files).to contain_exactly("test.rb", "test2.rb", "subdir/test3.rb")
+        end
       end
     end
   end

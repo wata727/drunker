@@ -10,6 +10,7 @@ module Drunker
       logger.info("Created source bucket: #{bucket.name}")
       @name = "drunker_source_#{timestamp}.zip"
       @target_files = []
+      @config = config
       @logger = logger
 
       set_target_files(target_dir)
@@ -17,6 +18,7 @@ module Drunker
         bucket.object(name).upload_file(path.to_s)
         logger.info("Uploaded source archive: #{location}")
       end
+      @logger = logger
     end
 
     def location
@@ -39,6 +41,7 @@ module Drunker
 
     attr_reader :bucket
     attr_reader :name
+    attr_reader :config
     attr_reader :logger
 
     def archive(target_dir)
@@ -58,7 +61,8 @@ module Drunker
     end
 
     def set_target_files(target_dir)
-      Pathname.glob(target_dir.to_s + "/**/*").select(&:file?).each do |real_path|
+      logger.debug("Use file pattern: #{config.file_pattern}")
+      Pathname.glob(target_dir.to_s + "/" + config.file_pattern).select(&:file?).each do |real_path|
         file = real_path.relative_path_from(target_dir).to_s
         @target_files << file
         logger.debug("Set target: #{file}")
