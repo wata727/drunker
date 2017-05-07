@@ -1,19 +1,11 @@
 module Drunker
   class Aggregator
     class Base
-      attr_reader :builders
-      attr_reader :artifact
-
-      def initialize(builders:, artifact:)
-        @builders = builders
-        @artifact = artifact
-      end
-
-      def run
+      def run(layers)
         raise NotImplementedError.new("You must implement #{self.class}##{__method__}")
       end
 
-      def exit_status
+      def exit_status(layers)
         raise NotImplementedError.new("You must implement #{self.class}##{__method__}")
       end
     end

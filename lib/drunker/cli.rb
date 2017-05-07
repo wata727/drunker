@@ -8,6 +8,7 @@ module Drunker
     method_option :env, :type => :hash, :default => {}, :desc => "Environment variables in containers"
     method_option :buildspec, :type => :string, :desc => "Location of custom buildspec"
     method_option :file_pattern, :type => :string, :default => "**/*", :desc => "FILES target file pattern, can use glob to specify, but files beginning with a dot are ignored."
+    method_option :aggregator, :type => :string, :default => "pretty", :desc => "Aggregator name. If you want to use custom aggregator, please install that beforehand."
     method_option :loglevel, :type => :string, :default => "info", :enum => %w(debug info warn error fatal), :desc => "Output log level"
     method_option :debug, :type => :boolean, :default => false, :desc => "Enable debug mode. This mode does not delete the AWS resources created by Drunker"
     method_option :access_key, :type => :string, :desc => "AWS access key token used by Drunker"
@@ -29,6 +30,7 @@ module Drunker
                                    env: options[:env],
                                    buildspec: options[:buildspec],
                                    file_pattern: options[:file_pattern],
+                                   aggregator: options[:aggregator],
                                    debug: options[:debug],
                                    access_key: options[:access_key],
                                    secret_key: options[:secret_key],
@@ -40,11 +42,11 @@ module Drunker
       source = Drunker::Source.new(Pathname.pwd, config: config, logger: logger)
 
       logger.info("Starting executor...")
-      builders, artifact = Drunker::Executor.new(source: source, config: config, logger: logger).run
+      artifact = Drunker::Executor.new(source: source, config: config, logger: logger).run
 
       logger.info("Starting aggregator...")
-      aggregator = Drunker::Aggregator.create(builders: builders, artifact: artifact)
-      aggregator.run
+      aggregator = Drunker::Aggregator.create(config)
+      aggregator.run(artifact.layers)
 
       unless config.debug?
         logger.info("Deleting source...")
@@ -53,7 +55,7 @@ module Drunker
         artifact.delete
       end
 
-      exit aggregator.exit_status
+      exit aggregator.exit_status(artifact.layers)
     rescue Drunker::Config::InvalidConfigException => exn
       logger.error(exn.message)
       exit 1

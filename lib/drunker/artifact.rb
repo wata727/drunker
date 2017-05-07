@@ -1,7 +1,5 @@
 module Drunker
   class Artifact
-    NOT_FOUND = "ARTIFACT_NOT_FOUND"
-
     attr_reader :bucket
     attr_reader :stdout
     attr_reader :stderr
@@ -29,13 +27,18 @@ module Drunker
       }
     end
 
-    def output
-      @output ||= builds.each_with_object({}) do |build, results|
+    def layers
+      @layers ||= builds.each_with_object([]) do |build, layers|
         project_name, build_id = build.split(":")
-        results[build] = {}.tap do |body|
-          body[:stdout] = fetch_content("#{build_id}/#{project_name}/#{stdout}")
-          body[:stderr] = fetch_content("#{build_id}/#{project_name}/#{stderr}")
-          body[:exit_status] = fetch_content("#{build_id}/#{project_name}/#{exit_status}")
+        layers << Layer.new(build_id: build).tap do |layer|
+          begin
+            layer.stdout = fetch_content("#{build_id}/#{project_name}/#{stdout}")
+            layer.stderr = fetch_content("#{build_id}/#{project_name}/#{stderr}")
+            layer.exit_status = fetch_content("#{build_id}/#{project_name}/#{exit_status}")
+          rescue Aws::S3::Errors::NoSuchKey
+            logger.debug("Artifact not found")
+            layer.invalid!
+          end
         end
       end
     end
@@ -65,9 +68,6 @@ module Drunker
     def fetch_content(object_id)
       logger.debug("Get artifact: #{object_id}")
       bucket.object(object_id).get.body.string
-    rescue Aws::S3::Errors::NoSuchKey
-      logger.debug("Artifact not found: #{object_id}")
-      NOT_FOUND
     end
   end
 end

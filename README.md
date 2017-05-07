@@ -125,6 +125,8 @@ Options:
   [--buildspec=BUILDSPEC]        # Location of custom buildspec
   [--file-pattern=FILE_PATTERN]  # FILES target file pattern, can use glob to specify, but files beginning with a dot are ignored.
                                  # Default: **/*
+  [--aggregator=AGGREGATOR]      # Aggregator name. If you want to use custom aggregator, please install that beforehand.
+                                 # Default: pretty
   [--loglevel=LOGLEVEL]          # Output log level
                                  # Default: info
                                  # Possible values: debug, info, warn, error, fatal
@@ -252,7 +254,15 @@ buildspec:
 
 ## Customize Output
 
-TODO: Write about custom aggregator (exit status etc...)
+Do you want to customize the output format? You can customize output format, exit code by creating Gem called aggregator. For example, the default aggregator is implemented as a separate [Gem](https://github.com/wata727/drunker-aggregator-pretty).
+
+The specifications that the aggregator must satisfy are the following three.
+
+- Inherit `Drunker::Aggregator::Base`
+- Implement `run` and `exit_status` methods to receive array of `Drunker::Artifact::Layer`
+- Return a number in `exit_status` method
+
+`Drunker::Artifact::Layer` has outputs and build ID for each build. Please see the [implementation](https://github.com/wata727/drunker/blob/master/lib/drunker/artifact/layer.rb) for details.
 
 ## Development
 

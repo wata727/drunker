@@ -43,10 +43,10 @@ module Drunker
           builders.each(&:refresh)
         end
         logger.info("Build is completed!")
-        artifact.output
+        artifact.layers # load artifact layers from S3
       end
 
-      [builders, artifact]
+      artifact
     end
 
     private

@@ -8,6 +8,7 @@ module Drunker
     attr_reader :environment_variables
     attr_reader :buildspec
     attr_reader :file_pattern
+    attr_reader :aggregator
 
     class InvalidConfigException < StandardError; end
 
@@ -20,6 +21,7 @@ module Drunker
                    env:,
                    buildspec:,
                    file_pattern:,
+                   aggregator:,
                    access_key:,
                    secret_key:,
                    region:,
@@ -37,6 +39,7 @@ module Drunker
       @environment_variables = codebuild_environments_format(yaml["environment_variables"] || env)
       @buildspec = buildspec_body!(yaml["buildspec"] || buildspec)
       @file_pattern = yaml["file_pattern"] || file_pattern
+      @aggregator = aggregator_gem!(yaml["aggregator"] || aggregator)
       @credentials = aws_credentials(profile_name: yaml.dig("aws_credentials", "profile_name") || profile_name,
                                      access_key: yaml.dig("aws_credentials", "access_key") || access_key,
                                      secret_key: yaml.dig("aws_credentials", "secret_key") || secret_key)
@@ -91,6 +94,12 @@ module Drunker
       end
     end
 
+    def aggregator_gem!(name)
+      gem = Gem::Specification.select { |gem| gem.name == "drunker-aggregator-#{name}" }.max { |a, b| a.version <=> b.version }
+      raise InvalidConfigException.new("Invalid aggregator. `drunker-aggregator-#{name}` is already installed?") unless gem
+      gem
+    end
+
     def load!(config)
       yaml = YAML.load_file(config)
       validate_yaml!(yaml)
@@ -107,7 +116,7 @@ module Drunker
     end
 
     def validate_yaml!(yaml)
-      valid_toplevel_keys = %w(concurrency compute_type timeout file_pattern environment_variables buildspec aws_credentials)
+      valid_toplevel_keys = %w(concurrency compute_type timeout file_pattern environment_variables buildspec aggregator aws_credentials)
       invalid_keys = yaml.keys.reject { |k| valid_toplevel_keys.include?(k) }
       raise InvalidConfigException.new("Invalid config file keys: #{invalid_keys.join(",")}") unless invalid_keys.empty?
 
@@ -130,6 +139,8 @@ module Drunker
                   "Invalid environment variables. It should be flatten hash. got: #{yaml["environment_variables"]}"
                 when yaml["file_pattern"] && !yaml["file_pattern"].is_a?(String)
                   "Invalid file pattern. It should be string. got: #{yaml["file_pattern"]}"
+                when yaml["aggregator"] && !yaml["aggregator"].is_a?(String)
+                  "Invalid aggregator. It should be string. got: #{yaml["aggregator"]}"
                 end
 
       raise InvalidConfigException.new(message) if message

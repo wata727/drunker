@@ -101,7 +101,7 @@ RSpec.describe Drunker::Executor do
       allow(builder1).to receive(:refresh)
       allow(builder2).to receive(:refresh)
       allow(builder3).to receive(:refresh)
-      allow(artifact).to receive(:output)
+      allow(artifact).to receive(:layers)
       allow(iam).to receive(:delete)
       allow(client).to receive(:delete_project)
       allow_any_instance_of(Object).to receive(:sleep)
@@ -119,9 +119,9 @@ RSpec.describe Drunker::Executor do
       executor.run
     end
 
-    it "returns builders and artifact" do
-      expect(artifact).to receive(:output)
-      expect(executor.run).to eq [[builder1], artifact]
+    it "returns artifact" do
+      expect(artifact).to receive(:layers)
+      expect(executor.run).to eq artifact
     end
 
     context "when environment variables are configured" do

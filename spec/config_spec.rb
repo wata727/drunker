@@ -10,6 +10,7 @@ RSpec.describe Drunker::Config do
   let(:env) { {} }
   let(:buildspec) { nil }
   let(:file_pattern) { "**/*" }
+  let(:aggregator) { "pretty" }
   let(:debug) { false }
   let(:access_key) { nil }
   let(:secret_key) { nil }
@@ -26,6 +27,7 @@ RSpec.describe Drunker::Config do
                         env: env,
                         buildspec: buildspec,
                         file_pattern: file_pattern,
+                        aggregator: aggregator,
                         debug: debug,
                         access_key: access_key,
                         secret_key: secret_key,

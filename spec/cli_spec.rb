@@ -5,9 +5,9 @@ RSpec.describe Drunker::CLI do
     let(:config) { double("config stub") }
     let(:source) { double("source stub") }
     let(:executor) { double("executor stub") }
-    let(:builders) { [double("builder stub")] }
-    let(:artifact) { double("artifact stub") }
-    let(:aggregator) { double(exit_status: 0) }
+    let(:layers) { double("artifact layers stub") }
+    let(:artifact) { double(layers: layers) }
+    let(:aggregator) { double("aggregator stub") }
     let(:logger) { Logger.new("/dev/null") }
     before do
       allow(Drunker::Config).to receive(:new).and_return(config)
@@ -15,9 +15,10 @@ RSpec.describe Drunker::CLI do
       allow(Logger).to receive(:new).and_return(logger)
       allow(Drunker::Source).to receive(:new).and_return(source)
       allow(Drunker::Executor).to receive(:new).and_return(executor)
-      allow(executor).to receive(:run).and_return([builders, artifact])
+      allow(executor).to receive(:run).and_return(artifact)
       allow(Drunker::Aggregator).to receive(:create).and_return(aggregator)
       allow(aggregator).to receive(:run)
+      allow(aggregator).to receive(:exit_status).and_return(0)
       allow(source).to receive(:delete)
       allow(artifact).to receive(:delete)
       allow_any_instance_of(Object).to receive(:exit)
@@ -46,6 +47,7 @@ RSpec.describe Drunker::CLI do
                                                     env: {},
                                                     buildspec: nil,
                                                     file_pattern: "**/*",
+                                                    aggregator: "pretty",
                                                     debug: false,
                                                     access_key: nil,
                                                     secret_key: nil,
@@ -58,7 +60,7 @@ RSpec.describe Drunker::CLI do
     end
 
     it "runs executor" do
-      expect(executor).to receive(:run).and_return([builders, artifact])
+      expect(executor).to receive(:run).and_return(artifact)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
@@ -73,14 +75,17 @@ RSpec.describe Drunker::CLI do
     end
 
     it "runs aggregator" do
-      expect(Drunker::Aggregator).to receive(:create).with(builders: builders, artifact: artifact).and_return(aggregator)
-      expect(aggregator).to receive(:run)
+      expect(Drunker::Aggregator).to receive(:create).and_return(aggregator)
+      expect(aggregator).to receive(:run).with(layers)
+      expect(aggregator).to receive(:exit_status).with(layers).and_return(0)
       expect_any_instance_of(Object).to receive(:exit).with(0)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
 
     context "when exit_status is 1" do
-      let(:aggregator) { double(exit_status: 1) }
+      before do
+        allow(aggregator).to receive(:exit_status).and_return(1)
+      end
 
       it "returns 1 as exit status code" do
         expect_any_instance_of(Object).to receive(:exit).with(1)
@@ -102,6 +107,7 @@ RSpec.describe Drunker::CLI do
                                                       env: { "RAILS_ENV" => "test", "SECRET_KEY_BASE" => "super_secret" },
                                                       buildspec: "custom_buildspec.yml.erb",
                                                       file_pattern: "spec/**/*_spec.rb",
+                                                      aggregator: "rspec",
                                                       debug: true,
                                                       access_key: "ACCESS_KEY",
                                                       secret_key: "SECRET_KEY",
@@ -119,6 +125,7 @@ RSpec.describe Drunker::CLI do
           --env=RAILS_ENV:test SECRET_KEY_BASE:super_secret
           --buildspec=custom_buildspec.yml.erb
           --file-pattern=spec/**/*_spec.rb
+          --aggregator=rspec
           --debug
           --access-key=ACCESS_KEY
           --secret-key=SECRET_KEY
