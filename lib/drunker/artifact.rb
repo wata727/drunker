@@ -5,7 +5,7 @@ module Drunker
     attr_reader :bucket
     attr_reader :stdout
     attr_reader :stderr
-    attr_reader :status_code
+    attr_reader :exit_status
 
     def initialize(config:, logger:)
       timestamp = Time.now.to_i.to_s
@@ -16,7 +16,7 @@ module Drunker
       @name = "drunker_artifact_#{timestamp}"
       @stdout = "drunker_artifact_#{timestamp}_stdout.txt"
       @stderr = "drunker_artifact_#{timestamp}_stderr.txt"
-      @status_code = "drunker_artifact_#{timestamp}_status_code.txt"
+      @exit_status = "drunker_artifact_#{timestamp}_exit_status.txt"
       @builds = []
       @logger = logger
     end
@@ -35,7 +35,7 @@ module Drunker
         results[build] = {}.tap do |body|
           body[:stdout] = fetch_content("#{build_id}/#{project_name}/#{stdout}")
           body[:stderr] = fetch_content("#{build_id}/#{project_name}/#{stderr}")
-          body[:status_code] = fetch_content("#{build_id}/#{project_name}/#{status_code}")
+          body[:exit_status] = fetch_content("#{build_id}/#{project_name}/#{exit_status}")
         end
       end
     end

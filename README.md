@@ -31,7 +31,7 @@ Finished in 5.9 seconds (files took 0.17053 seconds to load)
 133 examples, 0 failures
 
 STDERR:
-STATUS_CODE: 0
+EXIT_STATUS: 0
 -------------------------------------------------------------------------------------------
 ```
 
@@ -61,7 +61,7 @@ Finished in 0.12019 seconds (files took 0.14562 seconds to load)
 16 examples, 0 failures
 
 STDERR:
-STATUS_CODE: 0
+EXIT_STATUS: 0
 -------------------------------------------------------------------------------------------
 
 
@@ -74,7 +74,7 @@ Finished in 0.15774 seconds (files took 0.19026 seconds to load)
 74 examples, 0 failures
 
 STDERR:
-STATUS_CODE: 0
+EXIT_STATUS: 0
 -------------------------------------------------------------------------------------------
 
 
@@ -87,7 +87,7 @@ Finished in 5.56 seconds (files took 0.14991 seconds to load)
 43 examples, 0 failures
 
 STDERR:
-STATUS_CODE: 0
+EXIT_STATUS: 0
 -------------------------------------------------------------------------------------------
 ```
 
@@ -211,12 +211,12 @@ phases:
       - bundle install
   build:
     commands:
-      - <%= commands.join(" ") %> 1> <%= stdout %> 2> <%= stderr %>; echo $? > <%= status_code %>
+      - <%= commands.join(" ") %> 1> <%= stdout %> 2> <%= stderr %>; echo $? > <%= exit_status %>
 artifacts:
   files:
     - <%= stdout %>
     - <%= stderr %>
-    - <%= status_code %>
+    - <%= exit_status %>
 ```
 
 Actual commands and output files are interpolated by ERB. Please see [here](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) for how to write `buildspec.yml`. After that, specify the file path with the `--buildspec` option.
@@ -242,12 +242,12 @@ buildspec:
         - bundle install
     build:
       commands:
-        - <%= commands.join(" ") %> 1> <%= stdout %> 2> <%= stderr %>; echo $? > <%= status_code %>
+        - <%= commands.join(" ") %> 1> <%= stdout %> 2> <%= stderr %>; echo $? > <%= exit_status %>
   artifacts:
     files:
       - <%= stdout %>
       - <%= stderr %>
-      - <%= status_code %>
+      - <%= exit_status %>
 ```
 
 ## Customize Output

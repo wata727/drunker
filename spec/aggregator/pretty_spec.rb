@@ -16,12 +16,12 @@ RSpec.describe Drunker::Aggregator::Pretty do
       success_body = {
         stdout: "Success!",
         stderr: "warning!",
-        status_code: "0"
+        exit_status: "0"
       }
       failed_body = {
         stdout: "Trying...",
         stderr: "Failed...",
-        status_code: "1"
+        exit_status: "1"
       }
       allow(artifact).to receive(:output).and_return("project_name:build_id_1" => success_body, "project_name:build_id_2" => failed_body)
     end
@@ -34,7 +34,7 @@ BUILD_ID: project_name:build_id_1
 RESULT: SUCCESS
 STDOUT: Success!
 STDERR: warning!
-STATUS_CODE: 0
+EXIT_STATUS: 0
 -------------------------------------------------------------------------------------------
 
 
@@ -43,7 +43,7 @@ BUILD_ID: project_name:build_id_2
 RESULT: FAILED
 STDOUT: Trying...
 STDERR: Failed...
-STATUS_CODE: 1
+EXIT_STATUS: 1
 -------------------------------------------------------------------------------------------
 
 OUTPUT
@@ -55,12 +55,12 @@ OUTPUT
         success_body = {
           stdout: Drunker::Artifact::NOT_FOUND,
           stderr: Drunker::Artifact::NOT_FOUND,
-          status_code: Drunker::Artifact::NOT_FOUND
+          exit_status: Drunker::Artifact::NOT_FOUND
         }
         failed_body = {
           stdout: Drunker::Artifact::NOT_FOUND,
           stderr: Drunker::Artifact::NOT_FOUND,
-          status_code: Drunker::Artifact::NOT_FOUND
+          exit_status: Drunker::Artifact::NOT_FOUND
         }
         allow(artifact).to receive(:output).and_return("project_name:build_id_1" => success_body, "project_name:build_id_2" => failed_body)
       end
@@ -90,12 +90,12 @@ OUTPUT
       success_body = {
         stdout: "Success!",
         stderr: "warning!",
-        status_code: "0"
+        exit_status: "0"
       }
       failed_body = {
         stdout: "Trying...",
         stderr: "Failed...",
-        status_code: "1"
+        exit_status: "1"
       }
       allow(artifact).to receive(:output).and_return("project_name:build_id_1" => success_body, "project_name:build_id_2" => failed_body)
     end
@@ -109,12 +109,12 @@ OUTPUT
         success_body = {
           stdout: Drunker::Artifact::NOT_FOUND,
           stderr: Drunker::Artifact::NOT_FOUND,
-          status_code: Drunker::Artifact::NOT_FOUND
+          exit_status: Drunker::Artifact::NOT_FOUND
         }
         failed_body = {
           stdout: Drunker::Artifact::NOT_FOUND,
           stderr: Drunker::Artifact::NOT_FOUND,
-          status_code: Drunker::Artifact::NOT_FOUND
+          exit_status: Drunker::Artifact::NOT_FOUND
         }
         allow(artifact).to receive(:output).and_return("project_name:build_id_1" => success_body, "project_name:build_id_2" => failed_body)
       end

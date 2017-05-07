@@ -163,13 +163,13 @@ phases:
     - bundle install
   build:
     commands:
-    - <%= commands.join(" ") %> 1> <%= stdout %> 2> <%= stderr %>; echo $? > <%= status_code
+    - <%= commands.join(" ") %> 1> <%= stdout %> 2> <%= stderr %>; echo $? > <%= exit_status
       %>
 artifacts:
   files:
   - "<%= stdout %>"
   - "<%= stderr %>"
-  - "<%= status_code %>"
+  - "<%= exit_status %>"
 YAML
         expect(config.file_pattern).to eq file_pattern
         expect(config.environment_variables).to eq([])

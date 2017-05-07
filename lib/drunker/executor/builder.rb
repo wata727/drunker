@@ -103,7 +103,7 @@ module Drunker
         commands = interpolate_commands
         stdout = artifact.stdout
         stderr = artifact.stderr
-        status_code = artifact.status_code
+        exit_status = artifact.exit_status
 
         ERB.new(config.buildspec).result(binding)
       end

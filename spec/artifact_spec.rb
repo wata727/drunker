@@ -36,7 +36,7 @@ RSpec.describe Drunker::Artifact do
     it "sets artifact attributes" do
       expect(artifact.stdout).to eq "drunker_artifact_#{time.to_i.to_s}_stdout.txt"
       expect(artifact.stderr).to eq "drunker_artifact_#{time.to_i.to_s}_stderr.txt"
-      expect(artifact.status_code).to eq "drunker_artifact_#{time.to_i.to_s}_status_code.txt"
+      expect(artifact.exit_status).to eq "drunker_artifact_#{time.to_i.to_s}_exit_status.txt"
     end
   end
 
@@ -49,30 +49,30 @@ RSpec.describe Drunker::Artifact do
   describe "#output" do
     let(:build_1_stdout_object) { double(get: double(body: double(string: "build_1_stdout") ) ) }
     let(:build_1_stderr_object) { double(get: double(body: double(string: "build_1_stderr") ) ) }
-    let(:build_1_status_code_object) { double(get: double(body: double(string: "build_1_status_code") ) ) }
+    let(:build_1_exit_status_object) { double(get: double(body: double(string: "build_1_exit_status") ) ) }
     let(:build_2_stdout_object) { double(get: double(body: double(string: "build_2_stdout") ) ) }
     let(:build_2_stderr_object) { double(get: double(body: double(string: "build_2_stderr") ) ) }
-    let(:build_2_status_code_object) { double(get: double(body: double(string: "build_2_status_code") ) ) }
+    let(:build_2_exit_status_object) { double(get: double(body: double(string: "build_2_exit_status") ) ) }
     before do
       artifact.instance_variable_set(:@builds, %w(drunker-test-executor:build_1 drunker-test-executor:build_2))
       allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stdout.txt").and_return(build_1_stdout_object)
       allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stderr.txt").and_return(build_1_stderr_object)
-      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_status_code.txt").and_return(build_1_status_code_object)
+      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_exit_status.txt").and_return(build_1_exit_status_object)
       allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stdout.txt").and_return(build_2_stdout_object)
       allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stderr.txt").and_return(build_2_stderr_object)
-      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_status_code.txt").and_return(build_2_status_code_object)
+      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_exit_status.txt").and_return(build_2_exit_status_object)
     end
 
     it "returns artifact hash" do
       build_1_body = {
         stdout: "build_1_stdout",
         stderr: "build_1_stderr",
-        status_code: "build_1_status_code"
+        exit_status: "build_1_exit_status"
       }
       build_2_body = {
         stdout: "build_2_stdout",
         stderr: "build_2_stderr",
-        status_code: "build_2_status_code"
+        exit_status: "build_2_exit_status"
       }
       expect(artifact.output).to eq("drunker-test-executor:build_1" => build_1_body, "drunker-test-executor:build_2" => build_2_body)
     end
@@ -82,22 +82,22 @@ RSpec.describe Drunker::Artifact do
       before do
         allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stdout.txt").and_raise(exception)
         allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stderr.txt").and_raise(exception)
-        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_status_code.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_exit_status.txt").and_raise(exception)
         allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stdout.txt").and_raise(exception)
         allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stderr.txt").and_raise(exception)
-        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_status_code.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_exit_status.txt").and_raise(exception)
       end
 
       it "returns artifact hash" do
         build_1_body = {
           stdout: Drunker::Artifact::NOT_FOUND,
           stderr: Drunker::Artifact::NOT_FOUND,
-          status_code: Drunker::Artifact::NOT_FOUND
+          exit_status: Drunker::Artifact::NOT_FOUND
         }
         build_2_body = {
           stdout: Drunker::Artifact::NOT_FOUND,
           stderr: Drunker::Artifact::NOT_FOUND,
-          status_code: Drunker::Artifact::NOT_FOUND
+          exit_status: Drunker::Artifact::NOT_FOUND
         }
         expect(artifact.output).to eq("drunker-test-executor:build_1" => build_1_body, "drunker-test-executor:build_2" => build_2_body)
       end

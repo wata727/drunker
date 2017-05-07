@@ -12,7 +12,7 @@ RSpec.describe Drunker::Executor::Builder do
     )
   end
   let(:targets) { %w(lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb) }
-  let(:artifact) { double(stdout: "stdout.txt", stderr: "stderr.txt", status_code: "status_code.txt") }
+  let(:artifact) { double(stdout: "stdout.txt", stderr: "stderr.txt", exit_status: "exit_status.txt") }
   let(:builder) { Drunker::Executor::Builder.new(project_name: project_name, targets: targets, artifact: artifact, config: config, logger: Logger.new("/dev/null")) }
   let(:client) { double("codebuild client stub") }
 
@@ -48,12 +48,12 @@ version: 0.1
 phases:
   build:
     commands:
-      - rubocop --fail-level=F 1> stdout.txt 2> stderr.txt; echo $? > status_code.txt
+      - rubocop --fail-level=F 1> stdout.txt 2> stderr.txt; echo $? > exit_status.txt
 artifacts:
   files:
     - stdout.txt
     - stderr.txt
-    - status_code.txt
+    - exit_status.txt
 YAML
       expect(client).to receive(:start_build).with(project_name: project_name, buildspec_override: yaml).and_return(response)
 
@@ -80,12 +80,12 @@ version: 0.1
 phases:
   build:
     commands:
-      - rubocop --fail-level=F lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb 1> stdout.txt 2> stderr.txt; echo $? > status_code.txt
+      - rubocop --fail-level=F lib/drunker.rb lib/drunker/cli.rb lib/drunker/version.rb 1> stdout.txt 2> stderr.txt; echo $? > exit_status.txt
 artifacts:
   files:
     - stdout.txt
     - stderr.txt
-    - status_code.txt
+    - exit_status.txt
 YAML
         expect(client).to receive(:start_build).with(project_name: project_name, buildspec_override: yaml).and_return(response)
 

@@ -11,7 +11,7 @@ module Drunker
           puts "RESULT: #{builder.success? ? "SUCCESS" : "FAILED"}"
           puts "STDOUT: #{body[:stdout]}" unless body[:stdout] == Drunker::Artifact::NOT_FOUND
           puts "STDERR: #{body[:stderr]}" unless body[:stderr] == Drunker::Artifact::NOT_FOUND
-          puts "STATUS_CODE: #{body[:status_code]}" unless body[:status_code] == Drunker::Artifact::NOT_FOUND
+          puts "EXIT_STATUS: #{body[:exit_status]}" unless body[:exit_status] == Drunker::Artifact::NOT_FOUND
           puts "-------------------------------------------------------------------------------------------"
           puts
         end
@@ -19,7 +19,7 @@ module Drunker
 
       def exit_status
         artifact.output.map do |_build, body|
-          body[:status_code] == Drunker::Artifact::NOT_FOUND ? 1 : body[:status_code].to_i
+          body[:exit_status] == Drunker::Artifact::NOT_FOUND ? 1 : body[:exit_status].to_i
         end.max
       end
     end
