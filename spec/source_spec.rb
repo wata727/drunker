@@ -9,12 +9,13 @@ RSpec.describe Drunker::Source do
   let(:source) { Drunker::Source.new(path, config: config, logger: logger) }
   let(:client) { double("s3 client stub") }
   let(:s3) { double("s3 stub") }
-  let(:bucket) { double(name: "drunker-source-store-1483196400") }
+  let(:bucket) { double(name: "drunker-source-store-#{time.to_i.to_s}") }
   let(:object) { double("object stub") }
   let(:zip) { double("zip stub") }
   let(:archive_path) { double("archive path stub") }
+  let(:time) { Time.local(2017) }
   before do
-    Timecop.freeze(Time.local(2017))
+    Timecop.freeze(time)
 
     allow(Aws::S3::Client).to receive(:new).and_return(client)
     allow(Aws::S3::Resource).to receive(:new).and_return(s3)
@@ -32,12 +33,12 @@ RSpec.describe Drunker::Source do
     end
 
     it "creates s3 bucket" do
-      expect(s3).to receive(:create_bucket).with(bucket: "drunker-source-store-1483196400").and_return(bucket)
+      expect(s3).to receive(:create_bucket).with(bucket: "drunker-source-store-#{time.to_i.to_s}").and_return(bucket)
       source
     end
 
     it "uploads archived source" do
-      expect(object).to receive(:upload_file).with((path + "drunker_source_1483196400.zip").to_s)
+      expect(object).to receive(:upload_file).with((path + "drunker_source_#{time.to_i.to_s}.zip").to_s)
       source
     end
 
@@ -49,7 +50,7 @@ RSpec.describe Drunker::Source do
       end
 
       it "archives and deletes source" do
-        expect(Zip::File).to receive(:open).with((Pathname(__dir__) + "fixtures/drunker_source_1483196400.zip").to_s, Zip::File::CREATE).and_yield(zip)
+        expect(Zip::File).to receive(:open).with((Pathname(__dir__) + "fixtures/drunker_source_#{time.to_i.to_s}.zip").to_s, Zip::File::CREATE).and_yield(zip)
         expect(zip).to receive(:add).with(Pathname(".custom_drunker.yml"), (Pathname(__dir__) + "fixtures/.custom_drunker.yml").to_s)
         expect(zip).to receive(:add).with(Pathname(".drunker.yml"), (Pathname(__dir__) + "fixtures/.drunker.yml").to_s)
         expect(zip).to receive(:add).with(Pathname(".gitignore"), (Pathname(__dir__) + "fixtures/.gitignore").to_s)
@@ -75,7 +76,7 @@ RSpec.describe Drunker::Source do
 
   describe "#location" do
     it "returns archived source object path on S3" do
-      expect(source.location).to eq "drunker-source-store-1483196400/drunker_source_1483196400.zip"
+      expect(source.location).to eq "drunker-source-store-#{time.to_i.to_s}/drunker_source_#{time.to_i.to_s}.zip"
     end
   end
 

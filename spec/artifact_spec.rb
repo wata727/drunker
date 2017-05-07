@@ -2,13 +2,14 @@ require "spec_helper"
 
 RSpec.describe Drunker::Artifact do
   let(:s3) { double("s3 stub") }
-  let(:bucket) { double(name: "drunker-artifact-store-1483196400") }
+  let(:bucket) { double(name: "drunker-artifact-store-#{time.to_i.to_s}") }
   let(:aws_opts) { double("AWS options stub") }
   let(:config) { double(aws_client_options: aws_opts) }
   let(:client) { double("client stub") }
   let(:artifact) { Drunker::Artifact.new(config: config, logger: Logger.new("/dev/null")) }
+  let(:time) { Time.local(2017) }
   before do
-    Timecop.freeze(Time.local(2017))
+    Timecop.freeze(time)
 
     allow(Aws::S3::Client).to receive(:new).and_return(client)
     allow(Aws::S3::Resource).to receive(:new).and_return(s3)
@@ -24,7 +25,7 @@ RSpec.describe Drunker::Artifact do
     end
 
     it "creates s3 bucket" do
-      expect(s3).to receive(:create_bucket).with(bucket: "drunker-artifact-store-1483196400").and_return(bucket)
+      expect(s3).to receive(:create_bucket).with(bucket: "drunker-artifact-store-#{time.to_i.to_s}").and_return(bucket)
       artifact
     end
 
@@ -33,15 +34,15 @@ RSpec.describe Drunker::Artifact do
     end
 
     it "sets artifact attributes" do
-      expect(artifact.stdout).to eq "drunker_artifact_1483196400_stdout.txt"
-      expect(artifact.stderr).to eq "drunker_artifact_1483196400_stderr.txt"
-      expect(artifact.status_code).to eq "drunker_artifact_1483196400_status_code.txt"
+      expect(artifact.stdout).to eq "drunker_artifact_#{time.to_i.to_s}_stdout.txt"
+      expect(artifact.stderr).to eq "drunker_artifact_#{time.to_i.to_s}_stderr.txt"
+      expect(artifact.status_code).to eq "drunker_artifact_#{time.to_i.to_s}_status_code.txt"
     end
   end
 
   describe "#to_h" do
     it "returns hash for buildspec" do
-      expect(artifact.to_h).to eq(type: "S3", location: "drunker-artifact-store-1483196400", namespace_type: "BUILD_ID")
+      expect(artifact.to_h).to eq(type: "S3", location: "drunker-artifact-store-#{time.to_i.to_s}", namespace_type: "BUILD_ID")
     end
   end
 
@@ -54,12 +55,12 @@ RSpec.describe Drunker::Artifact do
     let(:build_2_status_code_object) { double(get: double(body: double(string: "build_2_status_code") ) ) }
     before do
       artifact.instance_variable_set(:@builds, %w(drunker-test-executor:build_1 drunker-test-executor:build_2))
-      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_stdout.txt").and_return(build_1_stdout_object)
-      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_stderr.txt").and_return(build_1_stderr_object)
-      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_status_code.txt").and_return(build_1_status_code_object)
-      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_stdout.txt").and_return(build_2_stdout_object)
-      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_stderr.txt").and_return(build_2_stderr_object)
-      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_status_code.txt").and_return(build_2_status_code_object)
+      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stdout.txt").and_return(build_1_stdout_object)
+      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stderr.txt").and_return(build_1_stderr_object)
+      allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_status_code.txt").and_return(build_1_status_code_object)
+      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stdout.txt").and_return(build_2_stdout_object)
+      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stderr.txt").and_return(build_2_stderr_object)
+      allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_status_code.txt").and_return(build_2_status_code_object)
     end
 
     it "returns artifact hash" do
@@ -79,12 +80,12 @@ RSpec.describe Drunker::Artifact do
     context "when raise Aws::S3::Errors::NoSuchKey" do
       let(:exception) { Aws::S3::Errors::NoSuchKey.new(nil, "The specified key does not exist.") }
       before do
-        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_stdout.txt").and_raise(exception)
-        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_stderr.txt").and_raise(exception)
-        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_1483196400_status_code.txt").and_raise(exception)
-        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_stdout.txt").and_raise(exception)
-        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_stderr.txt").and_raise(exception)
-        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_1483196400_status_code.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stdout.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stderr.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_1/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_status_code.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stdout.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_stderr.txt").and_raise(exception)
+        allow(bucket).to receive(:object).with("build_2/drunker-test-executor/drunker_artifact_#{time.to_i.to_s}_status_code.txt").and_raise(exception)
       end
 
       it "returns artifact hash" do
