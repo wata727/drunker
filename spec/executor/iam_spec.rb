@@ -6,8 +6,8 @@ RSpec.describe Drunker::Executor::IAM do
   let(:client) { double("client stub") }
   let(:iam) { Drunker::Executor::IAM.new(source: source, artifact: artifact, config: config, logger: Logger.new("/dev/null")) }
   let(:resource) { double("IAM stub") }
-  let(:role) { double(name: "drunker-codebuild-service-role-#{time.to_i.to_s}") }
-  let(:policy) { double(arn: "example-arn", policy_name: "drunker-codebuild-service-policy-#{time.to_i.to_s}") }
+  let(:role) { double(name: "drunker-codebuild-service-role-#{time.to_i}") }
+  let(:policy) { double(arn: "example-arn", policy_name: "drunker-codebuild-service-policy-#{time.to_i}") }
   let(:source) { double(location: "source_location") }
   let(:artifact) { double(bucket: double(name: "artifact_bucket")) }
   let(:time) { Time.local(2017) }
@@ -41,7 +41,7 @@ RSpec.describe Drunker::Executor::IAM do
           }
         ],
       }.to_json
-      expect(resource).to receive(:create_role).with(role_name: "drunker-codebuild-servie-role-#{time.to_i.to_s}", assume_role_policy_document: json)
+      expect(resource).to receive(:create_role).with(role_name: "drunker-codebuild-servie-role-#{time.to_i}", assume_role_policy_document: json)
 
       iam
     end
@@ -80,7 +80,7 @@ RSpec.describe Drunker::Executor::IAM do
           }
         ]
       }.to_json
-      expect(resource).to receive(:create_policy).with(policy_name: "drunker-codebuild-service-policy-#{time.to_i.to_s}", policy_document: json)
+      expect(resource).to receive(:create_policy).with(policy_name: "drunker-codebuild-service-policy-#{time.to_i}", policy_document: json)
 
       iam
     end

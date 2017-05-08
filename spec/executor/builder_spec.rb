@@ -110,7 +110,7 @@ YAML
   describe "#retry" do
     it "runs" do
       expect(builder).to receive(:run)
-      expect{ builder.retry }.to change { builder.instance_variable_get(:@retry_count) }.by(1)
+      expect { builder.retry }.to change { builder.instance_variable_get(:@retry_count) }.by(1)
     end
   end
 

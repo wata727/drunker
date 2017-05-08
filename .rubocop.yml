@@ -1,0 +1,142 @@
+# To use the MeowCop gem.
+inherit_gem:
+  meowcop:
+    - config/rubocop.yml
+
+# Modify the version if you don't use MRI 2.1.
+AllCops:
+  TargetRubyVersion: 2.4
+
+Rails:
+  # If you use RuboCop with Ruby on Rails, turn on this option.
+  Enabled: false
+
+# You can customize rubocop settings.
+Lint/ShadowingOuterLocalVariable:
+  Enabled: false
+
+Metrics/LineLength:
+  Exclude:
+    - "spec/**"
+
+# EnforcedStyle: with_first_parameter => 0 offense
+# EnforcedStyle: with_fixed_indentation => 15 offenses
+Style/AlignParameters:
+  EnforcedStyle: with_first_parameter
+  Enabled: true
+
+# EnforcedStyle: nested => 0 offense
+# EnforcedStyle: compact => 14 offenses
+Style/ClassAndModuleChildren:
+  EnforcedStyle: nested
+  Enabled: true
+
+# EnforcedStyle: leading => 0 offense
+# EnforcedStyle: trailing => 28 offenses
+Style/DotPosition:
+  EnforcedStyle: leading
+  Enabled: true
+
+# EnforcedStyle: empty_lines => 617 offenses
+# EnforcedStyle: no_empty_lines => 1 offense
+Style/EmptyLinesAroundBlockBody:
+  EnforcedStyle: no_empty_lines
+  Enabled: true
+
+# EnforcedStyle: empty_lines => 34 offenses
+# EnforcedStyle: empty_lines_except_namespace => 26 offenses
+# EnforcedStyle: empty_lines_special => 19 offenses
+# EnforcedStyle: no_empty_lines => 0 offense
+Style/EmptyLinesAroundClassBody:
+  EnforcedStyle: no_empty_lines
+  Enabled: true
+
+# EnforcedStyle: when_needed => 30 offenses
+# EnforcedStyle: always => 30 offenses
+# EnforcedStyle: never => 0 offense
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: never
+  Enabled: true
+
+# EnforcedStyle: ruby19 => 40 offenses
+# EnforcedStyle: hash_rockets => 451 offenses
+# EnforcedStyle: no_mixed_keys => 0 offense
+# EnforcedStyle: ruby19_no_mixed_keys => 40 offenses
+Style/HashSyntax:
+  EnforcedStyle: no_mixed_keys
+  Enabled: true
+
+# EnforcedStyle: require_parentheses => 0 offense
+# EnforcedStyle: require_no_parentheses => 28 offenses
+# EnforcedStyle: require_no_parentheses_except_multiline => 27 offenses
+Style/MethodDefParentheses:
+  EnforcedStyle: require_parentheses
+  Enabled: true
+
+# EnforcedStyle: snake_case => 0 offense
+# EnforcedStyle: camelCase => 23 offenses
+Style/MethodName:
+  EnforcedStyle: snake_case
+  Enabled: true
+
+# EnforcedStyle: symmetrical => 0 offense
+# EnforcedStyle: new_line => 23 offenses
+# EnforcedStyle: same_line => 12 offenses
+Style/MultilineMethodCallBraceLayout:
+  EnforcedStyle: symmetrical
+  Enabled: true
+
+# EnforcedStyle: aligned => 28 offenses
+# EnforcedStyle: indented => 28 offenses
+# EnforcedStyle: indented_relative_to_receiver => 6 offenses
+Style/MultilineMethodCallIndentation:
+  EnforcedStyle: indented_relative_to_receiver
+  Enabled: true
+
+# EnforcedStyle: compact => 0 offense
+# EnforcedStyle: exploded => 10 offenses
+Style/RaiseArgs:
+  EnforcedStyle: compact
+  Enabled: true
+
+# EnforcedStyleInsidePipes: space => 33 offenses
+# EnforcedStyleInsidePipes: no_space => 0 offense
+Style/SpaceAroundBlockParameters:
+  EnforcedStyleInsidePipes: no_space
+  Enabled: true
+
+# EnforcedStyle: space => 1 offense
+# EnforcedStyle: no_space => 152 offenses
+Style/SpaceBeforeBlockBraces:
+  EnforcedStyle: space
+  Enabled: true
+
+# EnforcedStyle: space => 134 offenses
+# EnforcedStyle: no_space => 0 offense
+Style/SpaceInsideStringInterpolation:
+  EnforcedStyle: no_space
+  Enabled: true
+
+# EnforcedStyle: single_quotes => 687 offenses
+# EnforcedStyle: double_quotes => 3 offenses
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+  Enabled: true
+
+# EnforcedStyle: final_newline => 1 offense
+# EnforcedStyle: final_blank_line => 30 offenses
+Style/TrailingBlankLines:
+  EnforcedStyle: final_newline
+  Enabled: true
+
+# EnforcedStyle: snake_case => 0 offense
+# EnforcedStyle: camelCase => 46 offenses
+Style/VariableName:
+  EnforcedStyle: snake_case
+  Enabled: true
+
+# EnforcedStyle: percent => 0 offense
+# EnforcedStyle: brackets => 47 offenses
+Style/WordArray:
+  EnforcedStyle: percent
+  Enabled: true

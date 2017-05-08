@@ -3,7 +3,7 @@ module Drunker
     attr_reader :target_files
 
     def initialize(target_dir, config:, logger:)
-      timestamp = Time.now.to_i.to_s
+      timestamp = Time.now.to_i
       s3 = Aws::S3::Resource.new(client: Aws::S3::Client.new(config.aws_client_options))
 
       @bucket = s3.create_bucket(bucket: "drunker-source-store-#{timestamp}")
@@ -45,16 +45,16 @@ module Drunker
     attr_reader :logger
 
     def archive(target_dir)
-      archive_path = Pathname.new("#{target_dir.to_s}/#{name}")
+      archive_path = Pathname.new("#{target_dir}/#{name}")
 
       Zip::File.open(archive_path.to_s, Zip::File::CREATE) do |zip|
-        Pathname.glob(target_dir.to_s + "/**/*", File::Constants::FNM_DOTMATCH).select(&:file?).each do |real_path|
+        Pathname.glob(target_dir + "**/*", File::Constants::FNM_DOTMATCH).select(&:file?).each do |real_path|
           archive_file = real_path.relative_path_from(target_dir)
           zip.add(archive_file, real_path.to_s)
-          logger.debug("Archived: #{archive_file.to_s}")
+          logger.debug("Archived: #{archive_file}")
         end
       end
-      logger.debug("Archived source: #{archive_path.to_s}")
+      logger.debug("Archived source: #{archive_path}")
       yield archive_path
       archive_path.unlink
       logger.debug("Deleted archive")
@@ -62,7 +62,7 @@ module Drunker
 
     def set_target_files(target_dir)
       logger.debug("Use file pattern: #{config.file_pattern}")
-      Pathname.glob(target_dir.to_s + "/" + config.file_pattern).select(&:file?).each do |real_path|
+      Pathname.glob(target_dir + config.file_pattern).select(&:file?).each do |real_path|
         file = real_path.relative_path_from(target_dir).to_s
         @target_files << file
         logger.debug("Set target: #{file}")

@@ -4,7 +4,7 @@ module Drunker
       attr_reader :role
 
       def initialize(source:, artifact:, config:, logger:)
-        timestamp = Time.now.to_i.to_s
+        timestamp = Time.now.to_i
         client = Aws::IAM::Client.new(config.aws_client_options)
         iam = Aws::IAM::Resource.new(client: client)
 
