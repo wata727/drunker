@@ -6,7 +6,7 @@ module Drunker
     attr_reader :exit_status
 
     def initialize(config:, logger:)
-      timestamp = Time.now.to_i.to_s
+      timestamp = Time.now.to_i
       s3 = Aws::S3::Resource.new(client: Aws::S3::Client.new(config.aws_client_options))
 
       @bucket = s3.create_bucket(bucket: "drunker-artifact-store-#{timestamp}")

@@ -3,7 +3,7 @@ module Drunker
     RETRY_LIMIT = 10
 
     def initialize(source:, config:, logger:)
-      @project_name = "drunker-executor-#{Time.now.to_i.to_s}"
+      @project_name = "drunker-executor-#{Time.now.to_i}"
       @source = source
       logger.info("Creating artifact...")
       @artifact = Drunker::Artifact.new(config: config, logger: logger)

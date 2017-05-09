@@ -1,4 +1,7 @@
 # Drunker
+[![Build Status](https://travis-ci.org/wata727/drunker.svg?branch=master)](https://travis-ci.org/wata727/drunker)
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.txt)
+[![Gem Version](https://badge.fury.io/rb/drunker.svg)](https://badge.fury.io/rb/drunker)
 
 Distributed CLI runner on [AWS CodeBuild](https://aws.amazon.com/codebuild/). This is a wrapper for handling CodeBuild container more easily.
 

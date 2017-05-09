@@ -95,7 +95,7 @@ module Drunker
     end
 
     def aggregator_gem!(name)
-      gem = Gem::Specification.select { |gem| gem.name == "drunker-aggregator-#{name}" }.max { |a, b| a.version <=> b.version }
+      gem = Gem::Specification.select { |gem| gem.name == "drunker-aggregator-#{name}" }.max_by(&:version)
       raise InvalidConfigException.new("Invalid aggregator. `drunker-aggregator-#{name}` is already installed?") unless gem
       gem
     end
@@ -135,7 +135,7 @@ module Drunker
                   "Invalid timeout. It should be number (Not string). got: #{yaml["timeout"]}"
                 when yaml["buildspec"] && !(yaml["buildspec"].is_a?(String) || yaml["buildspec"].is_a?(Hash))
                   "Invalid buildspec. It should be string or hash. got: #{yaml["buildspec"]}"
-                when yaml["environment_variables"] && !yaml["environment_variables"]&.values.all? { |v| v.is_a?(String) || v.is_a?(Numeric) }
+                when yaml["environment_variables"] && !yaml["environment_variables"]&.values&.all? { |v| v.is_a?(String) || v.is_a?(Numeric) }
                   "Invalid environment variables. It should be flatten hash. got: #{yaml["environment_variables"]}"
                 when yaml["file_pattern"] && !yaml["file_pattern"].is_a?(String)
                   "Invalid file pattern. It should be string. got: #{yaml["file_pattern"]}"

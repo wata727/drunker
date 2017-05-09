@@ -9,7 +9,7 @@ RSpec.describe Drunker::Source do
   let(:source) { Drunker::Source.new(path, config: config, logger: logger) }
   let(:client) { double("s3 client stub") }
   let(:s3) { double("s3 stub") }
-  let(:bucket) { double(name: "drunker-source-store-#{time.to_i.to_s}") }
+  let(:bucket) { double(name: "drunker-source-store-#{time.to_i}") }
   let(:object) { double("object stub") }
   let(:zip) { double("zip stub") }
   let(:archive_path) { double("archive path stub") }
@@ -33,12 +33,12 @@ RSpec.describe Drunker::Source do
     end
 
     it "creates s3 bucket" do
-      expect(s3).to receive(:create_bucket).with(bucket: "drunker-source-store-#{time.to_i.to_s}").and_return(bucket)
+      expect(s3).to receive(:create_bucket).with(bucket: "drunker-source-store-#{time.to_i}").and_return(bucket)
       source
     end
 
     it "uploads archived source" do
-      expect(object).to receive(:upload_file).with((path + "drunker_source_#{time.to_i.to_s}.zip").to_s)
+      expect(object).to receive(:upload_file).with((path + "drunker_source_#{time.to_i}.zip").to_s)
       source
     end
 
@@ -50,7 +50,7 @@ RSpec.describe Drunker::Source do
       end
 
       it "archives and deletes source" do
-        expect(Zip::File).to receive(:open).with((Pathname(__dir__) + "fixtures/drunker_source_#{time.to_i.to_s}.zip").to_s, Zip::File::CREATE).and_yield(zip)
+        expect(Zip::File).to receive(:open).with((Pathname(__dir__) + "fixtures/drunker_source_#{time.to_i}.zip").to_s, Zip::File::CREATE).and_yield(zip)
         expect(zip).to receive(:add).with(Pathname(".custom_drunker.yml"), (Pathname(__dir__) + "fixtures/.custom_drunker.yml").to_s)
         expect(zip).to receive(:add).with(Pathname(".drunker.yml"), (Pathname(__dir__) + "fixtures/.drunker.yml").to_s)
         expect(zip).to receive(:add).with(Pathname(".gitignore"), (Pathname(__dir__) + "fixtures/.gitignore").to_s)
@@ -76,7 +76,7 @@ RSpec.describe Drunker::Source do
 
   describe "#location" do
     it "returns archived source object path on S3" do
-      expect(source.location).to eq "drunker-source-store-#{time.to_i.to_s}/drunker_source_#{time.to_i.to_s}.zip"
+      expect(source.location).to eq "drunker-source-store-#{time.to_i}/drunker_source_#{time.to_i}.zip"
     end
   end
 

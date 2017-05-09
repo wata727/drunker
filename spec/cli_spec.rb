@@ -54,7 +54,7 @@ RSpec.describe Drunker::CLI do
                                                     region: nil,
                                                     profile_name: nil,
                                                     logger: logger)
-                                              .and_return(config)
+                                   .and_return(config)
       expect(Drunker::Executor).to receive(:new).with(source: source, config: config, logger: logger).and_return(executor)
       Drunker::CLI.start(%w(run wata727/rubocop rubocop --fail-level=F FILES))
     end
@@ -114,7 +114,7 @@ RSpec.describe Drunker::CLI do
                                                       region: "us-east-1",
                                                       profile_name: "PROFILE_NAME",
                                                       logger: logger)
-                                       .and_return(config)
+                                     .and_return(config)
         expect(Drunker::Executor).to receive(:new).with(source: source, config: config, logger: logger).and_return(executor)
         Drunker::CLI.start(%w(
           run

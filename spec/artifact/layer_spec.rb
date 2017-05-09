@@ -14,7 +14,6 @@ RSpec.describe Drunker::Artifact::Layer do
     it "creates layer" do
       expect(layer).to have_attributes(build_id: build_id, stdout: "stdout", stderr: "stderr", exit_status: 1)
     end
-
   end
 
   describe "#invalid?" do
@@ -33,7 +32,7 @@ RSpec.describe Drunker::Artifact::Layer do
 
   describe "#invalid!" do
     it "changes invalid flag" do
-      expect { layer.invalid! }.to change { layer.instance_variable_get(:@invalid) }
+      expect { layer.invalid! }.to change { layer.instance_variable_get(:@invalid) } # rubocop:disable Lint/AmbiguousBlockAssociation
     end
   end
 end
