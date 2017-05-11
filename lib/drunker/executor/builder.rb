@@ -51,16 +51,20 @@ module Drunker
         end
       end
 
+      def ran?
+        !!build_id
+      end
+
       def running?
-        status == IN_PROGRESS
+        ran? && status == IN_PROGRESS
       end
 
       def failed?
-        status == FAILED
+        ran? && status == FAILED
       end
 
       def success?
-        status == SUCCEEDED
+        ran? && status == SUCCEEDED
       end
 
       def refresh

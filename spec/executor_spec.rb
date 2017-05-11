@@ -86,9 +86,12 @@ RSpec.describe Drunker::Executor do
       allow(Drunker::Executor::IAM).to receive(:new).and_return(iam)
       allow(client).to receive(:create_project)
       allow(Drunker::Executor::Builder).to receive(:new).and_return(builder1)
-      allow(builder1).to receive(:run).and_return("project_name:build_id_1")
-      allow(builder2).to receive(:run).and_return("project_name:build_id_2")
-      allow(builder3).to receive(:run).and_return("project_name:build_id_3")
+      allow(builder1).to receive(:ran?).and_return(false)
+      allow(builder2).to receive(:ran?).and_return(false)
+      allow(builder3).to receive(:ran?).and_return(false)
+      allow(builder1).to receive(:run) { allow(builder1).to receive(:ran?).and_return(true) }.and_return("project_name:build_id_1")
+      allow(builder2).to receive(:run) { allow(builder2).to receive(:ran?).and_return(true) }.and_return("project_name:build_id_2")
+      allow(builder3).to receive(:run) { allow(builder3).to receive(:ran?).and_return(true) }.and_return("project_name:build_id_3")
       allow(builder1).to receive(:access_denied?).and_return(false)
       allow(builder2).to receive(:access_denied?).and_return(false)
       allow(builder3).to receive(:access_denied?).and_return(false)
@@ -403,6 +406,16 @@ RSpec.describe Drunker::Executor do
             executor.run
           end
         end
+      end
+    end
+
+    context "and reached concurrent limit in CodeBuild" do
+      it "retries builder" do
+        expect(builder1).to receive(:run) do
+          expect(builder1).to receive(:run)
+        end.and_raise(Aws::CodeBuild::Errors::AccountLimitExceededException.new(nil, "An AWS service limit was exceeded for the calling AWS account."))
+
+        executor.run
       end
     end
   end

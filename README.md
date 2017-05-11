@@ -96,6 +96,17 @@ EXIT_STATUS: 0
 
 What is surprising is that do not require your local machine specs at all even if you increase the number of parallels. You can increase the number of parallels within the bounds of common sense.
 
+### Limitation
+The number of parallelism of CodeBuild is determined by default. If the limit is reached, Drunker queues remaining builders.
+
+```
+INFO: Maximum number of concurrent running builds has been reached. it will retry later...
+INFO: Waiting builder: 1/25, queues: 4
+...
+```
+
+For details about limitation, please see [here](http://docs.aws.amazon.com/codebuild/latest/userguide/limits.html).
+
 ### EC2 Container Registry
 
 Do you want to use private images? You can also specify the image of [EC2 Container Registry](https://aws.amazon.com/ecr/). Following example:

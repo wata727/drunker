@@ -9,26 +9,22 @@ module Drunker
       @artifact = Drunker::Artifact.new(config: config, logger: logger)
       @config = config
       @client = Aws::CodeBuild::Client.new(config.aws_client_options)
-      @builders = []
       @logger = logger
     end
 
     def run
       setup_project do
-        @builders = parallel_build
+        builders = create_builders
 
         loop do
-          builders.select(&:access_denied?).each do |builder|
-            failed_id = builder.build_id
-            if builder.retriable?
-              build_id = builder.retry
-              artifact.replace_build(before: failed_id ,after: build_id)
-            end
-          end
+          start_builders builders
+          restart_failed_builders builders
 
-          running, finished = builders.partition(&:running?)
-          finished.select(&:failed?).each do |failed|
-            failed.errors.each do |error|
+          ran, waiting = builders.partition(&:ran?)
+          running, finished = ran.partition(&:running?)
+
+          finished.select(&:failed?).each do |builder|
+            builder.errors.each do |error|
               logger.warn("Build failed: #{failed.build_id}")
               logger.warn("\tphase_type: #{error[:phase_type]}")
               logger.warn("\tphase_status: #{error[:phase_status]}")
@@ -37,12 +33,14 @@ module Drunker
             end
           end
 
-          break if running.count.zero?
-          logger.info("Waiting builder: #{finished.count}/#{builders.count}")
+          if waiting.count.zero? && running.count.zero?
+            logger.info("Build is completed!")
+            break
+          end
+          logger.info("Waiting builders: #{finished.count}/#{builders.count}, queues: #{waiting.count}")
           sleep 5
           builders.each(&:refresh)
         end
-        logger.info("Build is completed!")
         artifact.layers # load artifact layers from S3
       end
 
@@ -56,7 +54,6 @@ module Drunker
     attr_reader :artifact
     attr_reader :config
     attr_reader :client
-    attr_reader :builders
     attr_reader :logger
 
     def setup_project
@@ -104,19 +101,33 @@ module Drunker
       end
     end
 
-    def parallel_build
-      builders = []
-
+    def create_builders
       files_list = source.target_files.each_slice(source.target_files.count.quo(config.concurrency).ceil).to_a
       logger.info("Start parallel build: { files: #{source.target_files.count}, concurrency: #{config.concurrency}, real_concurrency: #{files_list.count} }")
-      files_list.to_a.each do |files|
+      files_list.to_a.each_with_object([]) do |files, builders|
         builder = Builder.new(project_name: project_name, targets: files, artifact: artifact, config: config, logger: logger)
-        build_id = builder.run
-        artifact.set_build(build_id)
         builders << builder
       end
+    end
 
-      builders
+    def start_builders(builders)
+      builders.reject(&:ran?).each do |builder|
+        build_id = builder.run
+        artifact.set_build(build_id)
+      end
+    rescue Aws::CodeBuild::Errors::AccountLimitExceededException => exn
+      logger.info("Maximum number of concurrent running builds has been reached. it will retry later...")
+      logger.debug("Exception: #{exn.inspect}")
+    end
+
+    def restart_failed_builders(builders)
+      builders.select(&:access_denied?).each do |builder|
+        failed_id = builder.build_id
+        if builder.retriable?
+          build_id = builder.retry
+          artifact.replace_build(before: failed_id ,after: build_id)
+        end
+      end
     end
   end
 end

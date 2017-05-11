@@ -189,14 +189,40 @@ MESSAGE
     end
   end
 
-  describe "#running?, #failed? and #success?" do
+  describe "#ran?, #running?, #failed? and #success?" do
     before do
       builder.instance_variable_set(:@build_id, "build_id")
+    end
+
+    context "when build is not running" do
+      before do
+        builder.instance_variable_set(:@build_id, nil)
+      end
+
+      it "returns false" do
+        expect(builder.ran?).to be false
+      end
+
+      it "returns false" do
+        expect(builder.running?).to be false
+      end
+
+      it "returns false" do
+        expect(builder.failed?).to be false
+      end
+
+      it "returns false" do
+        expect(builder.success?).to be false
+      end
     end
 
     context "when build is in progress" do
       before do
         allow(client).to receive(:batch_get_builds).with(ids: ["build_id"]).and_return(double(builds: [double(build_status: "IN_PROGRESS")]))
+      end
+
+      it "returns true" do
+        expect(builder.ran?).to be true
       end
 
       it "returns true" do
@@ -217,6 +243,10 @@ MESSAGE
         allow(client).to receive(:batch_get_builds).with(ids: ["build_id"]).and_return(double(builds: [double(build_status: "SUCCEEDED")]))
       end
 
+      it "returns true" do
+        expect(builder.ran?).to be true
+      end
+
       it "returns false" do
         expect(builder.running?).to be false
       end
@@ -233,6 +263,10 @@ MESSAGE
     context "when build is failed" do
       before do
         allow(client).to receive(:batch_get_builds).with(ids: ["build_id"]).and_return(double(builds: [double(build_status: "FAILED")]))
+      end
+
+      it "returns true" do
+        expect(builder.ran?).to be true
       end
 
       it "returns false" do
@@ -253,6 +287,10 @@ MESSAGE
         allow(client).to receive(:batch_get_builds).with(ids: ["build_id"]).and_return(double(builds: [double(build_status: "TIMED_OUT")]))
       end
 
+      it "returns true" do
+        expect(builder.ran?).to be true
+      end
+
       it "returns false" do
         expect(builder.running?).to be false
       end
@@ -269,6 +307,10 @@ MESSAGE
     context "when build is stopped" do
       before do
         allow(client).to receive(:batch_get_builds).with(ids: ["build_id"]).and_return(double(builds: [double(build_status: "STOPPED")]))
+      end
+
+      it "returns true" do
+        expect(builder.ran?).to be true
       end
 
       it "returns false" do
