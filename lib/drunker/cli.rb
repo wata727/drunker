@@ -8,7 +8,7 @@ module Drunker
     method_option :env, :type => :hash, :default => {}, :desc => "Environment variables in containers"
     method_option :buildspec, :type => :string, :desc => "Location of custom buildspec"
     method_option :file_pattern, :type => :string, :default => "**/*", :desc => "FILES target file pattern, can use glob to specify, but files beginning with a dot are ignored."
-    method_option :aggregator, :type => :string, :default => "pretty", :desc => "Aggregator name. If you want to use custom aggregator, please install that beforehand."
+    method_option :aggregator, :type => :string, :desc => "Aggregator name. If you want to use custom aggregator, please install that beforehand."
     method_option :loglevel, :type => :string, :default => "info", :enum => %w(debug info warn error fatal), :desc => "Output log level"
     method_option :debug, :type => :boolean, :default => false, :desc => "Enable debug mode. This mode does not delete the AWS resources created by Drunker"
     method_option :access_key, :type => :string, :desc => "AWS access key token used by Drunker"

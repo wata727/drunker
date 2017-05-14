@@ -95,7 +95,8 @@ module Drunker
     end
 
     def aggregator_gem!(name)
-      gem = Gem::Specification.select { |gem| gem.name == "drunker-aggregator-#{name}" }.max_by(&:version)
+      return unless name
+      gem = Gem::Specification.all.select { |gem| gem.name == "drunker-aggregator-#{name}" }.max_by(&:version)
       raise InvalidConfigException.new("Invalid aggregator. `drunker-aggregator-#{name}` is already installed?") unless gem
       gem
     end
