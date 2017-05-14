@@ -10,3 +10,9 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+module Drunker
+  class Aggregator
+    class Test < Base; end
+  end
+end

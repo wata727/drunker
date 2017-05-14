@@ -47,7 +47,7 @@ RSpec.describe Drunker::CLI do
                                                     env: {},
                                                     buildspec: nil,
                                                     file_pattern: "**/*",
-                                                    aggregator: "pretty",
+                                                    aggregator: nil,
                                                     debug: false,
                                                     access_key: nil,
                                                     secret_key: nil,

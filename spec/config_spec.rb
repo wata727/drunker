@@ -10,7 +10,7 @@ RSpec.describe Drunker::Config do
   let(:env) { {} }
   let(:buildspec) { nil }
   let(:file_pattern) { "**/*" }
-  let(:aggregator) { "pretty" }
+  let(:aggregator) { nil }
   let(:debug) { false }
   let(:access_key) { nil }
   let(:secret_key) { nil }
@@ -180,6 +180,16 @@ YAML
       end
     end
 
+    context "when specified custom aggregator" do
+      let(:aggregator) { "custom" }
+      let(:gem) { double(name: "drunker-aggregator-custom", version: Gem::Version.new("0.1.0")) }
+
+      it "returns aggregator gem" do
+        expect(Gem::Specification).to receive(:all).and_return([gem])
+        expect(config.aggregator).to eq gem
+      end
+    end
+
     context "when specified invalid concurrency" do
       let(:concurrency) { 0 }
 
@@ -217,6 +227,14 @@ YAML
 
       it "raises InvalidConfigException" do
         expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid config file. message: (#{config_file}): did not find expected node content while parsing a flow node at line 2 column 1")
+      end
+    end
+
+    context "when specified invalid custom aggregator" do
+      let(:aggregator) { "invalid" }
+
+      it "raises InvalidConfigException" do
+        expect { config }.to raise_error(Drunker::Config::InvalidConfigException, "Invalid aggregator. `drunker-aggregator-invalid` is already installed?")
       end
     end
   end
