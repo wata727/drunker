@@ -25,7 +25,7 @@ module Drunker
 
           finished.select(&:failed?).each do |builder|
             builder.errors.each do |error|
-              logger.warn("Build failed: #{failed.build_id}")
+              logger.warn("Build failed: #{builder.build_id}")
               logger.warn("\tphase_type: #{error[:phase_type]}")
               logger.warn("\tphase_status: #{error[:phase_status]}")
               logger.warn("\tstatus: #{error[:status]}")
