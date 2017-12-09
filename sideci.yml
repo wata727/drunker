@@ -1,0 +1,5 @@
+linter:
+  rubocop:
+    gems:
+      - name: meowcop
+        version: 1.13.0
