@@ -1,3 +1,8 @@
+## 0.2.0
+
+- Ruby 2.4.2 ([#9](https://github.com/wata727/drunker/pull/9))
+- Bump up default buildspec version to 0.2 ([#10](https://github.com/wata727/drunker/pull/10))
+
 ## 0.1.2
 
 - Fix error when build failed ([#8](https://github.com/wata727/drunker/pull/8))
