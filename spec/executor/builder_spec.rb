@@ -44,7 +44,7 @@ RSpec.describe Drunker::Executor::Builder do
     it "starts new build" do
       yaml =<<YAML
 ---
-version: 0.1
+version: 0.2
 phases:
   build:
     commands:
@@ -76,7 +76,7 @@ YAML
       it "starts new build with interpolated buildspec" do
         yaml =<<YAML
 ---
-version: 0.1
+version: 0.2
 phases:
   build:
     commands:
